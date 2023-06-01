@@ -1,0 +1,11 @@
+{
+    "methods": ["HOCL", "E-HOCL", "RDWC"],
+    "workload_names": ["YCSB A", "a"],
+    "target_epoch": 4,
+    "client_num": [16, 24],
+    "MN_num": 2,
+    "key_size": "randint",
+    "value_size": 8,
+    "cache_size": 600,
+    "span_size": null
+}

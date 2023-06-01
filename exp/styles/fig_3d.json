@@ -1,0 +1,11 @@
+{
+    "y_label": "P99 Latency (us)",
+    "x_label": "Throughput (Mops/s)",
+
+    "y_lim": [5, 45],
+    "x_tick": [0, 15, 30, 45],
+
+    "legend_location": "best",
+
+    "figsize": [5, 4]
+}

@@ -1,0 +1,17 @@
+recordcount=60000000
+operationcount=60000000
+fieldcount=1
+fieldlength=1
+# insertorder=ordered
+# insertstart=1
+
+workload=com.yahoo.ycsb.workloads.CoreWorkload
+
+readallfields=true
+
+readproportion=0.5
+updateproportion=0
+scanproportion=0
+insertproportion=0.5
+
+requestdistribution=latest

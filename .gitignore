@@ -1,0 +1,13 @@
+build/
+build/*
+ycsb/workloads/
+ycsb/workloads/*
+ycsb/YCSB/
+ycsb/YCSB/*
+ycsb/*.txt
+.vscode/
+*.tar.gz
+us_lat/*.lat
+tmp/
+exp/results
+*__pycache__

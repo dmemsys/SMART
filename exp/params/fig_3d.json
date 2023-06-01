@@ -1,0 +1,14 @@
+{
+    "methods": ["ART", "Sherman"],
+    "workload_names": ["YCSB C", "c"],
+    "target_epoch": 38,
+    "client_num": {
+        "Sherman": [[8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 8]],
+        "ART"    : [[8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 8], [8, 12], [8, 16], [8, 20], [8, 24], [8, 32], [8, 40]]
+    },
+    "MN_num": 1,
+    "key_size": "email",
+    "value_size": 64,
+    "cache_size": 600,
+    "span_size": 32
+}

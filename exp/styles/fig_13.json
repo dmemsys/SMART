@@ -1,0 +1,9 @@
+{
+    "y_label": "Throughput (Mops/s)",
+    "x_label": "Number of Clients",
+
+    "y_lim": [0, 60],
+
+    "legend_location": "upper left",
+    "figsize": [5, 4]
+}

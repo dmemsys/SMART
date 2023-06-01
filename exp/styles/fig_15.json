@@ -1,0 +1,12 @@
+{
+    "y_label": "Throughput (Mops/s)",
+    "yR_label": "Latency (us)",
+
+    "y_lim": [9, 100],
+    "yR_scale": "log",
+
+    "legend_location": "upper left",
+    "legendR_location": "best",
+
+    "figsize": [12, 5]
+}

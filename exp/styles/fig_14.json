@@ -1,0 +1,16 @@
+{
+    "y_label": "Throughput (Mops/s)",
+    "yR_label": "Latency (us)",
+    "x_label": "Value Size (Byte)",
+
+    "y_tick": [0, 5, 10, 15],
+    "yR_tick": [1, 10, 100, 1000],
+    "y_lim": [0, 15],
+    "yR_lim": [1, 1000],
+    "yR_scale": "log",
+
+    "legend_location": "upper left",
+    "legendR_location": "best",
+
+    "figsize": [8, 4]
+}

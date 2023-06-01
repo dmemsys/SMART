@@ -1,0 +1,7 @@
+{
+    "y_label": "P99 Latency (us)",
+    "x_label": "Throughput (Mops/s)",
+
+    "legend_location": "best",
+    "figsize": [5, 4]
+}

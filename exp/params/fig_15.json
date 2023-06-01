@@ -1,0 +1,11 @@
+{
+    "methods": ["ART", "+Lock-free Internal Node", "+Update-in-place Leaf Node", "+Rear Embedded Lock", "+Read Delegation", "+Write Combining"],
+    "workload_names": {"YCSB LOAD": "la", "YCSB A": "a", "YCSB B": "b", "YCSB C": "c", "YCSB D": "d"},
+    "target_epoch": 9,
+    "client_num": [16, 24],
+    "MN_num": 2,
+    "key_size": "randint",
+    "value_size": 8,
+    "cache_size": 600,
+    "span_size": null
+}

@@ -1,0 +1,9 @@
+{
+    "y_label": "Throughput (Mops/s)",
+    "x_label": "Value Size (Byte)",
+
+    "y_lim": [0, 120],
+
+    "legend_location": "upper right",
+    "figsize": [5, 4]
+}
