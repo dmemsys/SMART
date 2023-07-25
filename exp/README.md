@@ -1,6 +1,6 @@
 # Reproduce All Experiment Results
 
-In this folder, we provide code and scripts for reproducing figures in our paper. A 16-node r650 cluster is needed to reproduce all the results.
+In this folder, we provide code and scripts for reproducing figures in [our paper](https://www.usenix.org/system/files/osdi23-luo.pdf). A 16-node r650 cluster is needed to reproduce all the results.
 
 The name of each script corresponds to the number of each figure in our paper.
 Since some of the scripts in this directory take a long computing time (as we mark below), we strongly recommend you create a ***tmux session*** on each node to avoid script interruption due to network instability.
