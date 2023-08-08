@@ -80,7 +80,7 @@ class LogParser(object):
         def get_avg(l):
             return sum(l) / len(l) if l else 0
 
-        return get_avg(tpt), get_avg(cache_hit_rate), get_avg(lock_fail_cnt), get_avg(leaf_invalid_rate)
+        return get_avg(tpt) if tpt else None, get_avg(cache_hit_rate), get_avg(lock_fail_cnt), get_avg(leaf_invalid_rate)
 
     def get_redundant_statistics(self, log):
         redundant_read, redundant_write, redundant_cas = None, None, None
