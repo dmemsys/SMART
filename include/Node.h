@@ -5,6 +5,8 @@
 #include "GlobalAddress.h"
 #include "Key.h"
 
+#include <cmath>
+
 
 struct PackedGAddr {  // 48-bit, used by node addr/leaf addr (not entry addr)
   uint64_t mn_id     : define::mnIdBit;
@@ -87,6 +89,23 @@ public:
   Header
 */
 #ifdef TREE_ENABLE_FINE_GRAIN_NODE
+#ifdef TEST_NODE_TYPE_NUM
+#define MAX_NODE_TYPE_NUM ((int)define::adaptiveNodeTypeNum+1)
+constexpr double kTypeNumGap = std::pow(64.0, 1.0 / (define::adaptiveNodeTypeNum-1));
+enum NodeType : uint8_t {
+  NODE_DELETED,
+  NODE_4,
+  NODE_B,
+  NODE_C,
+  NODE_D,
+  NODE_E,
+  NODE_F,
+  NODE_G,
+  NODE_H,
+  NODE_I,
+  NODE_J
+};
+#else
 #define MAX_NODE_TYPE_NUM 8
 enum NodeType : uint8_t {
   NODE_DELETED,
@@ -98,6 +117,7 @@ enum NodeType : uint8_t {
   NODE_128,
   NODE_256
 };
+#endif
 #else
 #define MAX_NODE_TYPE_NUM 5
 enum NodeType : uint8_t {
@@ -112,11 +132,15 @@ enum NodeType : uint8_t {
 
 inline int node_type_to_num(NodeType type) {
   if (type == NODE_DELETED) return 0;
-#ifndef TREE_ENABLE_ART
+#ifndef TREE_ENABLE_ADAPTIVE_NODE
   type = NODE_256;
 #endif
 #ifdef TREE_ENABLE_FINE_GRAIN_NODE
+#ifdef TEST_NODE_TYPE_NUM
+  return (int)(4 * std::pow(kTypeNumGap, static_cast<int>(type) - 1) + 0.5);
+#else
   return 1 << (static_cast<int>(type) + 1);
+#endif
 #else
   switch (type) {
     case NODE_4  : return 4;
@@ -131,13 +155,19 @@ inline int node_type_to_num(NodeType type) {
 
 inline NodeType num_to_node_type(int num) {
   if (num == 0) return NODE_DELETED;
-#ifndef TREE_ENABLE_ART
+#ifndef TREE_ENABLE_ADAPTIVE_NODE
   return NODE_256;
 #endif
 #ifdef TREE_ENABLE_FINE_GRAIN_NODE
+#ifdef TEST_NODE_TYPE_NUM
+  for (int i = 1; i <= (int)define::adaptiveNodeTypeNum; ++ i) {
+    if (num < (int)(4 * std::pow(kTypeNumGap, i - 1) + 0.5)) return static_cast<NodeType>(i);
+  }
+#else
   for (int i = 1; i < MAX_NODE_TYPE_NUM; ++ i) {
     if (num < (1 << (i + 1))) return static_cast<NodeType>(i);
   }
+#endif
 #else
   if (num < 4) return NODE_4;
   if (num < 16) return NODE_16;
@@ -275,7 +305,13 @@ public:
     std::fill(records, records + 256, InternalEntry::Null());
   }
 
-  bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const { return hdr.type() != NODE_DELETED && hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr); }
+  bool is_valid(const GlobalAddress& p_ptr, int depth, bool from_cache) const {
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+    return hdr.type() != NODE_DELETED && (!from_cache || p_ptr == rev_ptr);
+#else
+    return hdr.type() != NODE_DELETED && hdr.depth <= depth && (!from_cache || p_ptr == rev_ptr);
+#endif
+  }
 } __attribute__((packed));
 
 

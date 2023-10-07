@@ -1,0 +1,11 @@
+{
+    "methods": "SMART",
+    "workload_names": ["YCSB A", "a"],
+    "target_epoch": 9,
+    "client_num": [16, 16],
+    "MN_num": 2,
+    "key_size": "randint",
+    "value_size": 8,
+    "cache_size": 600,
+    "local_lock_num": [1, 8, 64, 128, 256, 512]
+}

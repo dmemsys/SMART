@@ -10,9 +10,12 @@
 #include <string>
 #include <fstream>
 #include <random>
+// #include <mutex>
+
+// std::mutex cout_lock;
 
 #ifdef LONG_TEST_EPOCH
-  #define TEST_EPOCH 40
+  #define TEST_EPOCH 31
   #define TIME_INTERVAL 1
 #else
 #ifdef SHORT_TEST_EPOCH
@@ -31,9 +34,9 @@
 
 #define MAX_THREAD_REQUEST 10000000
 #define LOAD_HEARTBEAT 100000
-#define USE_CORO
+// #define USE_CORO
 #define EPOCH_LAT_TEST
-#define LOADER_NUM 8
+#define LOADER_NUM 8 // [CONFIG] 8
 
 extern double cache_miss[MAX_APP_THREAD];
 extern double cache_hit[MAX_APP_THREAD];

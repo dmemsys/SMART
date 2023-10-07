@@ -82,8 +82,12 @@ InternalEntry Tree::get_root_ptr(CoroContext *cxt, int coro_id) {
 }
 
 
-void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load) {
+void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_update, bool is_load, int target_depth, uint8_t target_partial) {
   assert(dsm->is_register());
+
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+  Key flag_k = kKeyNull;
+#endif
 
   // handover
   bool write_handover = false;
@@ -125,7 +129,7 @@ void Tree::insert(const Key &k, Value v, CoroContext *cxt, int coro_id, bool is_
 
   // search local cache
 #ifdef TREE_ENABLE_CACHE
-  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, entry_idx);
+  from_cache = index_cache->search_from_cache(k, entry_ptr_ptr, entry_ptr, entry_idx, target_depth);
   if (from_cache) { // cache hit
     assert(entry_idx >= 0);
     p_ptr = GADD(entry_ptr->addr, sizeof(InternalEntry) * entry_idx);
@@ -236,9 +240,22 @@ next:
 #endif
       goto insert_finish;
     }
-
     // 2.3 New key, we must merge the two leaves into a node (leaf split)
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+    if (depth > (int)define::keyLen) {
+      flag_k = _k;
+      goto insert_finish;
+    }
+#endif
     int partial_len = longest_common_prefix(_k, k, depth);
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+    int first_diff = longest_common_prefix(_k, k, 0);
+    if (first_diff < depth + partial_len) {
+      flag_k = _k;
+      goto insert_finish;
+    }
+#endif
+    assert(depth + partial_len <= (int)define::keyLen);
     uint8_t diff_partial = get_partial(_k, depth + partial_len);
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
     bool res = out_of_place_write_node(k, v, depth, leaf_addr, partial_len, diff_partial, p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);
@@ -286,6 +303,24 @@ next:
   UNUSED(type_correct);
 #endif
 
+#if (!defined TREE_ENABLE_PATH_COMPRESSION) || (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION)
+  assert(hdr.partial_len == 0);
+#endif
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+  if (target_depth > 0 && hdr.depth > target_depth) {
+      // need split
+      auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+      bool res = out_of_place_write_node(k, v, target_depth, leaf_addr, 0, target_partial, p_ptr, p, node_ptr, cas_buffer, cxt, coro_id);
+      // cas fail, retry
+      if (!res) {
+        p = *(InternalEntry*) cas_buffer;
+        retry_flag = SPLIT_HEADER;
+        goto next;
+      }
+      goto insert_finish;
+  }
+  // TODO: hybrid compression bug: insert in header incorrectly
+#endif
   for (int i = 0; i < hdr.partial_len; ++ i) {
     if (get_partial(k, hdr.depth + i) != hdr.partial[i]) {
       // need split
@@ -307,10 +342,15 @@ next:
       // udpate cas header. Optimization: no need to snyc; mask node_type
       auto header_buffer = (dsm->get_rbuf(coro_id)).get_header_buffer();
       auto new_hdr = Header::split_header(hdr, i);
+#ifndef DISABLE_UNSIGNAL
       dsm->cas_mask(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer, ~Header::node_type_mask, false, cxt);
+#else
+      dsm->cas_mask_sync(GADD(p.addr(), sizeof(GlobalAddress)), (uint64_t)hdr, (uint64_t)new_hdr, header_buffer, ~Header::node_type_mask, cxt);
+#endif
       goto insert_finish;
     }
   }
+
   depth = hdr.depth + hdr.partial_len;
 #ifdef TREE_TEST_ROWEX_ART
   if (!is_update) unlock_node(node_ptr, cxt, coro_id);
@@ -360,7 +400,7 @@ next:
     }
   }
 
-#ifdef TREE_ENABLE_ART
+#ifdef TREE_ENABLE_ADAPTIVE_NODE
   // 3.4 node is full, switch node type
   int slot_id;
   cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
@@ -400,6 +440,15 @@ insert_finish:
 #ifdef TREE_ENABLE_WRITE_COMBINING
   local_lock_table->release_local_write_lock(k, lock_res);
 #endif
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+  if (flag_k != kKeyNull) {
+    // 2.3 New key, we must insert the new key by re-taversaling the tree
+    int partial_len = longest_common_prefix(flag_k, k, 0);
+    uint8_t diff_partial = get_partial(flag_k, partial_len);
+    // assert(!target_depth && partial_len > 0);
+    insert(k, v, cxt, coro_id, is_update, is_load, partial_len, diff_partial);
+  }
+#endif
   return;
 }
 
@@ -412,8 +461,11 @@ re_read:
   // udpate reverse pointer if needed
   if (!from_cache && leaf->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+#ifndef DISABLE_UNSIGNAL
     dsm->cas(leaf_addr, leaf->rev_ptr, p_ptr, cas_buffer, false, cxt);
-    // dsm->cas_sync(leaf_addr, leaf->rev_ptr, p_ptr, cas_buffer, cxt);
+#else
+    dsm->cas_sync(leaf_addr, leaf->rev_ptr, p_ptr, cas_buffer, cxt);
+#endif
   }
   // invalidation
   if (!leaf->is_valid(p_ptr, from_cache)) {
@@ -522,6 +574,7 @@ write_leaf:
   dsm->write_sync((const char*)leaf, leaf_addr, sizeof(Leaf), cxt);
 #else
   // batch write updated leaf and on-chip lock
+#ifndef DISABLE_DOORBELL_BATCH
   RdmaOpRegion rs[2];
   rs[0].source = (uint64_t)leaf;
   rs[0].dest = leaf_addr;
@@ -534,6 +587,13 @@ write_leaf:
   rs[1].dest = lock_addr;
   rs[1].is_on_chip = true;
   dsm->write_cas_mask_sync(rs[0], rs[1], ~0UL, 0UL, mask, cxt);
+#else
+  dsm->write((const char *)leaf, leaf_addr, sizeof(Leaf), true, cxt);
+  dsm->cas_mask(lock_addr, ~0UL, 0UL, cas_buffer, mask, true, cxt);
+  if (cxt == nullptr) {
+    dsm->poll_rdma_cq(2);
+  }
+#endif
 #endif
 #endif
   return;
@@ -559,7 +619,11 @@ bool Tree::out_of_place_update_leaf(const Key &k, Value &v, int depth, GlobalAdd
   if (res) {
     // invalid the old leaf
     auto zero_byte = (dsm->get_rbuf(coro_id)).get_zero_byte();
+#ifndef DISABLE_UNSIGNAL
     dsm->write(zero_byte, GADD(old_e.addr(), STRUCT_OFFSET(Leaf, valid_byte)), sizeof(uint8_t), false, cxt);
+#else
+    dsm->write_sync(zero_byte, GADD(old_e.addr(), STRUCT_OFFSET(Leaf, valid_byte)), sizeof(uint8_t), cxt);
+#endif
   }
   else {
     old_e = *(InternalEntry*) cas_buffer;
@@ -653,7 +717,11 @@ bool Tree::out_of_place_write_leaf(const Key &k, Value &v, int depth, GlobalAddr
   else {  // write the changed e_ptr inside leaf
     auto ptr_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     *ptr_buffer = e_ptr;
+#ifndef DISABLE_UNSIGNAL
     dsm->write((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), false, cxt);
+#else
+    dsm->write_sync((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), cxt);
+#endif
   }
 
   // cas entry
@@ -693,8 +761,11 @@ bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, co
   // udpate reverse pointer if needed
   if (!from_cache && p_node->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+#ifndef DISABLE_UNSIGNAL
     dsm->cas(p.addr(), p_node->rev_ptr, p_ptr, cas_buffer, false, cxt);
-    // dsm->cas_sync(p.addr(), p_node->rev_ptr, p_ptr, cas_buffer, cxt);
+#else
+    dsm->cas_sync(p.addr(), p_node->rev_ptr, p_ptr, cas_buffer, cxt);
+#endif
   }
   return p_node->is_valid(p_ptr, depth, from_cache);
 }
@@ -723,7 +794,11 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   else {  // write the changed e_ptr inside new leaf  TODO: batch
     auto ptr_buffer = (dsm->get_rbuf(coro_id)).get_entry_buffer();
     *ptr_buffer = leaf_e_ptr;
+#ifndef DISABLE_UNSIGNAL
     dsm->write((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), false, cxt);
+#else
+    dsm->write_sync((const char *)ptr_buffer, leaf_addr, sizeof(GlobalAddress), cxt);
+#endif
   }
 
   // init inner nodes
@@ -742,19 +817,27 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
 
   // insert the two leaf into the last node
   auto node_buffer  = (dsm->get_rbuf(coro_id)).get_page_buffer();
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+  node_pages[new_node_num - 1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, e_ptr);  // only use the last node
+#else
   node_pages[new_node_num - 1] = new (node_buffer) InternalPage(k, partial_len, depth, nodes_type, rev_ptr);
+#endif
   node_pages[new_node_num - 1]->records[0] = InternalEntry(diff_partial, old_e);
   node_pages[new_node_num - 1]->records[1] = InternalEntry(get_partial(k, depth + partial_len),
                                                            sizeof(Leaf) < 128 ? sizeof(Leaf) : 0, leaf_addr);
 
   // init the parent entry
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+  auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[new_node_num - 1]);  // only use the last node
+#else
   auto new_e = InternalEntry(old_e.partial, nodes_type, node_addrs[0]);
+#endif
   auto page_size = sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(nodes_type) * sizeof(InternalEntry);
 
   // batch_write nodes (doorbell batching)
-  int i;
+#ifndef DISABLE_DOORBELL_BATCH
   RdmaOpRegion *rs =  new RdmaOpRegion[new_node_num + 1];
-  for (i = 0; i < new_node_num; ++ i) {
+  for (int i = 0; i < new_node_num; ++ i) {
     rs[i].source     = (uint64_t)node_pages[i];
     rs[i].dest       = node_addrs[i];
     rs[i].size       = page_size;
@@ -766,7 +849,30 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
     rs[new_node_num].size       = sizeof(Leaf);
     rs[new_node_num].is_on_chip = false;
   }
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+  dsm->write_batches_sync(&rs[new_node_num - 1], (leaf_unwrite ? 2 : 1), cxt, coro_id);  // only use the last node
+#else
   dsm->write_batches_sync(rs, (leaf_unwrite ? new_node_num + 1 : new_node_num), cxt, coro_id);
+#endif
+#else
+#if (!defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) && (!defined TREE_ENABLE_HYBRID_COMPRESSION)
+  for (int i = 0; i < new_node_num - 1; ++ i) {
+    dsm->write((const char *)node_pages[i], node_addrs[i], page_size, true, cxt);
+  }
+#endif
+  dsm->write((const char *)node_pages[new_node_num - 1], node_addrs[new_node_num - 1], page_size, true, cxt);
+  if (leaf_unwrite) {
+    dsm->write(leaf_buffer, leaf_addr, sizeof(Leaf), true, cxt);
+  }
+  if (cxt == nullptr) {
+    int write_num = 0;
+#if (!defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) && (!defined TREE_ENABLE_HYBRID_COMPRESSION)
+    write_num += new_node_num - 1;
+#endif
+    write_num += leaf_unwrite ? 2 : 1;
+    dsm->poll_rdma_cq(write_num);
+  }
+#endif
 
   // cas
   auto remote_cas = [=](){
@@ -787,7 +893,11 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   // cas the updated rev_ptr inside old leaf / old node
   if (res) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();
+#ifndef DISABLE_UNSIGNAL
     dsm->cas(old_e.addr(), e_ptr, GADD(node_addrs[new_node_num - 1], sizeof(GlobalAddress) + sizeof(Header)), cas_buffer, false, cxt);
+#else
+    dsm->cas_sync(old_e.addr(), e_ptr, GADD(node_addrs[new_node_num - 1], sizeof(GlobalAddress) + sizeof(Header)), cas_buffer, cxt);
+#endif
   }
 
 
@@ -799,7 +909,10 @@ bool Tree::out_of_place_write_node(const Key &k, Value &v, int depth, GlobalAddr
   }
 #endif
   // free
-  delete[] rs; delete[] node_pages; delete[] node_addrs;
+#ifndef DISABLE_DOORBELL_BATCH
+  delete[] rs;
+#endif
+  delete[] node_pages; delete[] node_addrs;
   return res;
 }
 
@@ -816,6 +929,7 @@ void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry 
   // batch cas old_entry & node header to change node type
   auto remote_cas_both = [=, &p_ptr, &p, &hdr](){
     auto new_e = InternalEntry(next_type, p);
+#ifndef DISABLE_DOORBELL_BATCH
     RdmaOpRegion rs[2];
     rs[0].source     = (uint64_t)cas_buffer_1;
     rs[0].dest       = p_ptr;
@@ -825,6 +939,14 @@ void Tree::cas_node_type(NodeType next_type, GlobalAddress p_ptr, InternalEntry 
     rs[1].is_on_chip = false;
     return dsm->two_cas_mask_sync(rs[0], (uint64_t)p, (uint64_t)new_e, ~0UL,
                                   rs[1], hdr, Header(next_type), Header::node_type_mask, cxt);
+#else
+    dsm->cas(p_ptr, (uint64_t)p, (uint64_t)new_e, cas_buffer_1, true, cxt);
+    dsm->cas_mask(header_addr, hdr, Header(next_type), cas_buffer_2, Header::node_type_mask, true, cxt);
+    if (cxt == nullptr) {
+      dsm->poll_rdma_cq(2);
+    }
+    return std::make_pair((uint64_t)p == *cas_buffer_1, (uint64_t)hdr == *cas_buffer_2);
+#endif
   };
 
   // only cas old_entry
@@ -878,7 +1000,7 @@ bool Tree::insert_behind(const Key &k, Value &v, int depth, GlobalAddress& leaf_
                          const GlobalAddress &node_addr, uint64_t *ret_buffer, int& inserted_idx,
                          CoroContext *cxt, int coro_id) {
   int max_num, i;
-  assert(node_type != NODE_256);
+  assert(node_type != num_to_node_type(256-1));
   max_num = node_type_to_num(node_type);
   // try cas an empty slot
   for (i = 0; i < 256 - max_num; ++ i) {
@@ -963,7 +1085,7 @@ bool Tree::search(const Key &k, Value &v, CoroContext *cxt, int coro_id) {
 #endif
   depth ++;
   cache_depth = depth;
-  assert(p != InternalEntry::Null());
+  if(p == InternalEntry::Null()) return false;  // empty tree
 
 next:
   retry_cnt[dsm->getMyThreadID()][retry_flag] ++;
@@ -1265,7 +1387,7 @@ next_level:
       r.dest       = p.addr();
       r.size       = p.is_leaf ? std::max((unsigned long)p.kv_len, sizeof(Leaf)) : (
                               s.from_cache ?  // TODO: art
-                              (sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(NODE_256) * sizeof(InternalEntry)) :
+                              (sizeof(GlobalAddress) + sizeof(Header) + 256 * sizeof(InternalEntry)) :
                               (sizeof(GlobalAddress) + sizeof(Header) + node_type_to_num(p.type()) * sizeof(InternalEntry))
                           );
       r.is_on_chip = false;

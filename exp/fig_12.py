@@ -68,17 +68,22 @@ def main(cmd: CMDManager, tp: LogParser):
                 KILL_PROCESS = f"{env_cmd} && killall -9 ycsb_test"
 
                 cmd.all_execute(SPLIT_WORKLOADS, CN_num)
+                retry_cnt = 0
                 while True:
                     try:
                         cmd.one_execute(CLEAR_MEMC)
                         cmd.all_execute(KILL_PROCESS, CN_num)
                         logs = cmd.all_long_execute(YCSB_TEST, CN_num)
-                        _, p99_lat = cmd.get_cluster_lats(str(Path(project_dir) / 'us_lat'), CN_num, target_epochs[workload])
-                        tpt, _, _, _ = tp.get_statistics(logs, target_epochs[workload])
+                        _, p99_lat = cmd.get_cluster_lats(str(Path(project_dir) / 'us_lat'), CN_num, target_epochs[workload], get_avg=True)
+                        tpt, _, _, _ = tp.get_statistics(logs, target_epochs[workload], get_avg=True)
                         break
                     except (FunctionTimedOut, Exception) as e:
                         print_WARNING(f"Error! Retry... {e}")
-
+                        retry_cnt += 1
+                        if retry_cnt >= 3:
+                            break
+                if retry_cnt >= 3:
+                    continue
                 print_GOOD(f"[FINISHED POINT] workload={workload} method={method} client_num={CN_num*client_num_per_CN} tpt={tpt} p99_lat={p99_lat}")
                 plot_data['X_data'][method].append(tpt)
                 plot_data['Y_data'][method].append(p99_lat)

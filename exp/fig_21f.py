@@ -13,7 +13,7 @@ from utils.pic_generator import PicGenerator
 input_path = './params'
 style_path = "./styles"
 output_path = './results'
-fig_num = '18b'
+fig_num = '21f'
 
 # common params
 with (Path(input_path) / f'common.json').open(mode='r') as f:
@@ -31,8 +31,8 @@ methods                   = fig_params['methods']
 workload, workload_name   = fig_params['workload_names']
 target_epoch              = fig_params['target_epoch']
 CN_num, client_num_per_CN = fig_params['client_num']
-MN_num                    = fig_params['MN_num']
-key_type, key_sizes       = 'randint', fig_params['key_size']
+MN_nums                   = fig_params['MN_num']
+key_type                  = fig_params['key_size']
 value_size                = fig_params['value_size']
 cache_size                = fig_params['cache_size']
 span_size                 = fig_params['span_size']
@@ -40,16 +40,9 @@ span_size                 = fig_params['span_size']
 
 @print_func_time
 def main(cmd: CMDManager, tp: LogParser):
-    with (Path(input_path) / f'fig_{fig_num}.json').open(mode='r') as f:
-        fig_params = json.load(f)
-    CN_num, client_num_per_CN = fig_params['client_num']
-    key_type, key_sizes = 'randint', fig_params['key_size']
-    value_size = fig_params['value_size']
-    cache_size = fig_params['cache_size']
-
     plot_data = {
         'methods': methods,
-        'X_data': key_sizes,
+        'X_data': MN_nums,
         'Y_data': {method: [] for method in methods}
     }
     for method in methods:
@@ -57,9 +50,9 @@ def main(cmd: CMDManager, tp: LogParser):
         work_dir = f"{project_dir}/build"
         env_cmd = f"cd {work_dir}"
 
-        for key_size in key_sizes:
+        for MN_num in MN_nums:
             # change config
-            sed_cmd = generate_sed_cmd('./include/Common.h', method == 'Sherman', key_size, value_size, cache_size, MN_num, span_size)
+            sed_cmd = generate_sed_cmd('./include/Common.h', method == 'Sherman', 8 if key_type == 'randint' else 32, value_size, cache_size, MN_num, span_size)
             BUILD_PROJECT = f"cd {project_dir} && {sed_cmd} && mkdir -p build && cd build && cmake {cmake_options[method]} .. && make clean && make -j"
 
             CLEAR_MEMC = f"{env_cmd} && /bin/bash ../script/restartMemc.sh"
@@ -74,12 +67,12 @@ def main(cmd: CMDManager, tp: LogParser):
                     cmd.one_execute(CLEAR_MEMC)
                     cmd.all_execute(KILL_PROCESS, CN_num)
                     logs = cmd.all_long_execute(YCSB_TEST, CN_num)
-                    tpt, _, _, _ = tp.get_statistics(logs, target_epoch)
+                    tpt, _, _, _ = tp.get_statistics(logs, target_epoch, get_avg=True)
                     break
                 except (FunctionTimedOut, Exception) as e:
                     print_WARNING(f"Error! Retry... {e}")
 
-            print_GOOD(f"[FINISHED POINT] method={method} key_size={key_size} tpt={tpt}")
+            print_GOOD(f"[FINISHED POINT] method={method} MN_num={MN_num} tpt={tpt}")
             plot_data['Y_data'][method].append(tpt)
     # save data
     Path(output_path).mkdir(exist_ok=True)

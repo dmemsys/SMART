@@ -1,0 +1,11 @@
+{
+    "methods": "ART",
+    "workload_names": ["YCSB A", "a"],
+    "target_epoch": 9,
+    "client_num": [8, 32],
+    "MN_num": 1,
+    "key_size": "email",
+    "value_size": 64,
+    "cache_size": 600,
+    "span_size": null
+}

@@ -1,11 +1,11 @@
 {
-    "methods": ["Baseline", "+Homogeneous Adaptive Internal Node", "+ART-indexed Cache"],
-    "workload_names": ["YCSB C", "c"],
-    "target_epoch": 10,
+    "methods": ["HOCL", "E-HOCL", "RDWC"],
+    "workload_names": ["YCSB A", "a"],
+    "target_epoch": 4,
     "client_num": [16, 24],
     "MN_num": 2,
-    "key_size": "email",
+    "key_size": "randint",
     "value_size": 8,
-    "cache_size": [150, 200, 250, 300],
+    "cache_size": 600,
     "span_size": null
 }

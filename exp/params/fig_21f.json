@@ -1,0 +1,11 @@
+{
+    "methods": ["SMART", "ART", "Sherman"],
+    "workload_names": ["YCSB C", "c"],
+    "target_epoch": 9,
+    "client_num": [16, 64],
+    "MN_num": [1, 2, 3, 4, 5, 6, 7, 8],
+    "key_size": "randint",
+    "value_size": 8,
+    "cache_size": 600,
+    "span_size": 32
+}

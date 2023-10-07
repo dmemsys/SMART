@@ -1,0 +1,10 @@
+{
+    "methods": ["SMART", "w/o Inline Write", "w/o Unsignaled Verbs", "w/o Doorbell Batching"],
+    "workload_names": ["YCSB LA", "la"],
+    "target_epoch": 9,
+    "client_num": [16, 24],
+    "MN_num": 2,
+    "key_size": "randint",
+    "value_size": 8,
+    "cache_size": 600
+}

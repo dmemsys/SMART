@@ -14,12 +14,15 @@ class PicGenerator(object):
         self.__ld = LineDrawer(data_path)
         self.__bd = BarDrawer(data_path)
         self.__figs_type = {
-            '3a' : 'line_one_ax', '3b' : 'bar_one_ax'   , '3c' : 'line_one_ax'  , '3d' : 'line_one_ax',
-            '4a' : 'line_two_ax', '4b' : 'bar_two_ax'   , '4c' : 'line_one_ax'  , '4d' : 'line_two_ax',
-            '11a': 'line_one_ax', '11b': 'line_one_ax'  , '11c': 'line_one_ax'  , '11d': 'line_one_ax', '11e': 'line_one_ax'  ,
+            '4a' : 'line_one_ax', '4b' : 'bar_one_ax'   , '4c' : 'line_one_ax'  , '4d' : 'line_one_ax',
+            '5a' : 'line_two_ax', '5b' : 'bar_two_ax'   , '5c' : 'line_one_ax'  , '5d' : 'line_two_ax',
             '12a': 'line_one_ax', '12b': 'line_one_ax'  , '12c': 'line_one_ax'  , '12d': 'line_one_ax', '12e': 'line_one_ax'  ,
-            '13' : 'line_one_ax', '14' : 'bar_with_line', '15' : 'bar_with_line', '16' : 'bar_two_ax' , '17' : 'bar_with_line',
-            '18a': 'line_one_ax', '18b': 'line_one_ax'  , '18c': 'line_one_ax'
+            '13a': 'line_one_ax', '13b': 'line_one_ax'  , '13c': 'line_one_ax'  , '13d': 'line_one_ax', '13e': 'line_one_ax'  ,
+            '14' : 'line_one_ax', '15' : 'bar_with_line', '16' : 'bar_with_line', '17' : 'bar_two_ax' , '18' : 'bar_with_line',
+            '21a': 'line_one_ax', '21b': 'line_one_ax'  , '21c': 'line_one_ax'  ,
+            '3a' : 'bar_two_ax' , '3b' : 'bar_two_ax'   , '19' : 'line_one_ax'  ,
+            '20' : 'bar_one_ax' , '21d': 'line_one_ax'  , '21e': 'line_one_ax'  ,
+            '21f': 'line_one_ax'
         }
         self.__axhlineColor = '#00007c'
         self.__linewidth = 0.8

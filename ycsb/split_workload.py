@@ -10,16 +10,17 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-if (len(sys.argv) != 5) and (len(sys.argv) != 6):
+if (len(sys.argv) != 5) and (len(sys.argv) != 6) and (len(sys.argv) != 7):
     print(bcolors.WARNING + 'Usage:')
-    print('python3 split_workload.py workload_name[a/b/c/d/e] key_type[randint/email] CN_num client_per_CN (loader_num)' + bcolors.ENDC)
+    print('python3 split_workload.py workload_name[a/b/c/d/e] key_type[randint/email] CN_num client_per_CN (loader_num) (load_ratio)' + bcolors.ENDC)
     exit(0)
 
 workload = sys.argv[1]
 keyType = sys.argv[2]
 CNum = sys.argv[3]
 clientPerNode = sys.argv[4]
-loader_num = '8' if len(sys.argv) == 5 else sys.argv[5]
+loader_num = '8' if len(sys.argv) == 5 else sys.argv[5]  # [CONFIG] 8
+load_ratio = '1.0' if len(sys.argv) <= 6 else sys.argv[6]
 
 print(bcolors.OKGREEN + 'workload = ' + workload)
 print('key type = ' + keyType)
@@ -40,7 +41,7 @@ for op in ["load", "txn"]:
     print("spliting: ", fname)
     with open(fname, "r") as wlFile:
         lines = wlFile.readlines()
-        lineNum = len(lines)
+        lineNum = int(len(lines) * float(load_ratio)) if op == "load" else len(lines)
         splitSize = lineNum // splitNum
         for i in range(splitNum):
             print(i * splitSize, (i + 1) * splitSize)
