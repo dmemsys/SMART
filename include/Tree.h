@@ -63,7 +63,7 @@ public:
   using WorkFunc = std::function<void (Tree *, const Request&, CoroContext *, int)>;
   void run_coroutine(GenFunc gen_func, WorkFunc work_func, int coro_cnt, Request* req = nullptr, int req_num = 0);
 
-  void insert(const Key &k, Value v, CoroContext *cxt = nullptr, int coro_id = 0, bool is_update = false, bool is_load = false);
+  void insert(const Key &k, Value v, CoroContext *cxt = nullptr, int coro_id = 0, bool is_update = false, bool is_load = false, int target_depth = 0, uint8_t target_partial = 0);
   bool search(const Key &k, Value &v, CoroContext *cxt = nullptr, int coro_id = 0);
   void range_query(const Key &from, const Key &to, std::map<Key, Value> &ret);
   void statistics();

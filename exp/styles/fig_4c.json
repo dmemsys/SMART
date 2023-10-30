@@ -1,9 +1,10 @@
 {
-    "y_label": "Avg. Redundant READ",
-    "x_label": "Number of Clients per CN",
+    "y_label": "Throughput (Mops/s)",
+    "x_label": "Cache Size (MB)",
 
-    "x_tick": [1, 16, 32, 48, 64],
+    "y_lim": [0, 55],
+    "x_tick": [0, 200, 400, 600],
+    "legend_anchor": [0.5, 0.5],
 
-    "legend_location": "upper left",
     "figsize": [5, 4]
 }

@@ -1,0 +1,6 @@
+{
+    "y_label": "Throughput (Mops/s)",
+    "x_label": "Number of Local Locks",
+
+    "figsize": [5, 4]
+}
