@@ -1,0 +1,12 @@
+{
+    "y_label": "Throughput (Mops/s)",
+    "yR_label": "Cache Hit Ratio",
+    "x_label": "Cache Size (MB)",
+
+    "yR_tick": [0.9, 0.95, 1],
+
+    "legend_location": "upper left",
+    "legendR_location": "center left",
+
+    "figsize": [8, 4]
+}

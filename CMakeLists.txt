@@ -14,7 +14,18 @@ set(LINKS_FLAGS "-lcityhash -lboost_system -lboost_coroutine -lpthread -libverbs
 
 #Env Options
 option (STATIC_MN_IP "Use static MNs according the IPs of the nodes" OFF)
+option (ENABLE_CORO "Turn on the coroutine" ON)
 option (ENABLE_CACHE "Turn on the computing-side cache" ON)
+option (ENABLE_PATH_COMPRESSION "Turn on the adaptive internal nodes" ON)
+option (ENABLE_ADAPTIVE_NODE "Turn on the adaptive internal nodes" ON)
+option (TEST_NODE_TYPE_NUM "Turn on the node type num testing" OFF)
+
+option (DISABLE_INLINE "Turn off the inline write optimization" OFF)
+option (DISABLE_UNSIGNAL "Turn off the unsignaled verbs optimization" OFF)
+option (DISABLE_DOORBELL_BATCH "Turn off the doorbell batching optimization" OFF)
+option (ENABLE_OPTIMISTIC_COMPRESSION "Use the optimistic path compression" OFF)
+option (ENABLE_HYBRID_COMPRESSION "Use the optimistic path compression" OFF)
+
 option (LONG_TEST_EPOCH "Use big epoch num and long epoch duration" OFF)
 option (SHORT_TEST_EPOCH "Use small epoch num and short epoch duration" OFF)
 option (MIDDLE_TEST_EPOCH "Use middle epoch num and short epoch duration" OFF)
@@ -25,10 +36,64 @@ else()
     remove_definitions(-DSTATIC_ID_FROM_IP)
 endif()
 
+if(ENABLE_CORO)
+    add_definitions(-DUSE_CORO)
+else()
+    remove_definitions(-DUSE_CORO)
+endif()
+
 if(ENABLE_CACHE)
     add_definitions(-DTREE_ENABLE_CACHE)
 else()
     remove_definitions(-DTREE_ENABLE_CACHE)
+endif()
+
+if(ENABLE_PATH_COMPRESSION)
+    add_definitions(-DTREE_ENABLE_PATH_COMPRESSION)
+else()
+    remove_definitions(-DTREE_ENABLE_PATH_COMPRESSION)
+endif()
+
+if(ENABLE_ADAPTIVE_NODE)
+    add_definitions(-DTREE_ENABLE_ADAPTIVE_NODE)
+else()
+    remove_definitions(-DTREE_ENABLE_ADAPTIVE_NODE)
+endif()
+
+if(TEST_NODE_TYPE_NUM)
+    add_definitions(-DTEST_NODE_TYPE_NUM)
+else()
+    remove_definitions(-DTEST_NODE_TYPE_NUM)
+endif()
+
+if(DISABLE_INLINE)
+    add_definitions(-DDISABLE_INLINE)
+else()
+    remove_definitions(-DDISABLE_INLINE)
+endif()
+
+if(DISABLE_UNSIGNAL)
+    add_definitions(-DDISABLE_UNSIGNAL)
+else()
+    remove_definitions(-DDISABLE_UNSIGNAL)
+endif()
+
+if(DISABLE_DOORBELL_BATCH)
+    add_definitions(-DDISABLE_DOORBELL_BATCH)
+else()
+    remove_definitions(-DDISABLE_DOORBELL_BATCH)
+endif()
+
+if(ENABLE_OPTIMISTIC_COMPRESSION)
+    add_definitions(-DTREE_ENABLE_OPTIMISTIC_COMPRESSION)
+else()
+    remove_definitions(-DTREE_ENABLE_OPTIMISTIC_COMPRESSION)
+endif()
+
+if(ENABLE_HYBRID_COMPRESSION)
+    add_definitions(-DTREE_ENABLE_HYBRID_COMPRESSION)
+else()
+    remove_definitions(-DTREE_ENABLE_HYBRID_COMPRESSION)
 endif()
 
 if(LONG_TEST_EPOCH)
@@ -57,9 +122,9 @@ option (UPDATE_IN_PLACE_LEAF_NODE "+ Update-in-place leaf node" ON)
 option (REAR_EMBEDDED_LOCK "+ Read embedded lock" ON)
 option (READ_DELEGATION "+ Read delegation" ON)
 option (WRITE_COMBINING "+ Write combining" ON)
+option (DISABLE_HOCL "disable HOCL (HOCL is turned on by default when WRITE_COMBINING is disabled)" OFF)
 
 #Naive ART
-add_definitions(-DTREE_ENABLE_ART)
 remove_definitions(-DTREE_ENABLE_FINE_GRAIN_NODE)
 add_definitions(-DTREE_TEST_ROWEX_ART)
 add_definitions(-DTREE_TEST_HOCL_HANDOVER)
@@ -114,6 +179,10 @@ if(WRITE_COMBINING)
 else()
     add_definitions(-DTREE_TEST_HOCL_HANDOVER)
     remove_definitions(-DTREE_ENABLE_WRITE_COMBINING)
+endif()
+
+if(DISABLE_HOCL)
+    remove_definitions(-DTREE_TEST_HOCL_HANDOVER)
 endif()
 
 

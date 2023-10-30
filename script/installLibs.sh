@@ -5,6 +5,7 @@ if [ ! -d "tmp" ]; then
 fi
 
 cd tmp
+sudo apt update
 sudo apt-get -y --force-yes install cmake
 
 # memcached

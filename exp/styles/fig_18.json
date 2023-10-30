@@ -1,0 +1,15 @@
+{
+    "yL_label": "Throughput (Mops/s)",
+    "yR_label": "Avg. Lock-fail Count",
+    "x_label": "Technique",
+
+    "yL_tick": [0, 15, 30, 45, 60],
+    "yR_tick": [0, 0.25, 0.5, 0.75, 1],
+    "group_width": 0.4,
+    "yRfloat": true,
+
+    "legendL_location": "upper left",
+    "legendR_location": "upper right",
+
+    "figsize": [5, 4]
+}

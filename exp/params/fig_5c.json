@@ -1,0 +1,12 @@
+{
+    "methods": null,
+    "zipfian": 0.99,
+    "read_ratio": 100,
+    "target_epoch": null,
+    "client_num_per_CN": [8, 16, 24, 32, 40, 48, 56, 64],
+    "MN_num": 1,
+    "key_size": null,
+    "value_size": null,
+    "cache_size": null,
+    "span_size": null
+}

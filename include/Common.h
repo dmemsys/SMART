@@ -17,10 +17,22 @@
 
 #include "WRLock.h"
 
+// For Checking Code [CONFIG]
+// #define STATIC_ID_FROM_IP
+// #define TREE_ENABLE_CACHE
+// #define TREE_ENABLE_ADAPTIVE_NODE
+// #define TREE_ENABLE_PATH_COMPRESSION
+// #define CACHE_ENABLE_ART
+// #define TREE_ENABLE_FINE_GRAIN_NODE
+// #define TREE_ENABLE_IN_PLACE_UPDATE
+// #define TREE_ENABLE_EMBEDDING_LOCK
+// #define TREE_ENABLE_READ_DELEGATION
+// #define TREE_ENABLE_WRITE_COMBINING
+
 // Environment Config
 #define MAX_MACHINE 20
-#define MEMORY_NODE_NUM 2
-#define CPU_PHYSICAL_CORE_NUM 72  // [CONFIG]
+#define MEMORY_NODE_NUM 1
+#define CPU_PHYSICAL_CORE_NUM 72  // [CONFIG] 72
 #define MAX_CORO_NUM 8
 
 #define LATENCY_WINDOWS 100000
@@ -47,7 +59,7 @@
 
 
 // app thread
-#define MAX_APP_THREAD 65    // one additional thread for data statistics(main thread)  [config]
+#define MAX_APP_THREAD 65   // one additional thread for data statistics(main thread)  [CONFIG] 65
 #define APP_MESSAGE_NR 96
 #define POLL_CQ_MAX_CNT_ONCE 8
 
@@ -90,11 +102,11 @@ constexpr uint64_t GB = 1024ull * MB;
 constexpr uint16_t kCacheLineSize = 64;
 
 // Remote Allocation
-constexpr uint64_t dsmSize           = 64;        // GB  [CONFIG]
+constexpr uint64_t dsmSize           = 64;        // GB  [CONFIG] 64
 constexpr uint64_t kChunkSize        = 16 * MB;   // B
 
 // Rdma Buffer
-constexpr uint64_t rdmaBufferSize    = 4;         // GB  [CONFIG]
+constexpr uint64_t rdmaBufferSize    = 4;         // GB  [CONFIG] 4
 constexpr int64_t kPerThreadRdmaBuf  = rdmaBufferSize * define::GB / MAX_APP_THREAD;
 constexpr int64_t kPerCoroRdmaBuf    = kPerThreadRdmaBuf / MAX_CORO_NUM;
 
@@ -113,24 +125,33 @@ static_assert(kRootPointerStoreOffest % sizeof(uint64_t) == 0);
 // Internal Node
 constexpr uint32_t allocationPageSize = 8 + 8 + 256 * 8;
 constexpr uint32_t allocAlignPageSize = ROUND_UP(allocationPageSize, ALLOC_ALLIGN_BIT);
+#ifdef TEST_NODE_TYPE_NUM
+constexpr uint32_t adaptiveNodeTypeNum = 7;
+#endif
 
 // Internal Entry
 constexpr uint32_t kvLenBit        = 7;
 constexpr uint32_t nodeTypeNumBit  = 5;
 constexpr uint32_t mnIdBit         = 8;
 constexpr uint32_t offsetBit       = 48 - ALLOC_ALLIGN_BIT;
+#if (!defined TREE_ENABLE_PATH_COMPRESSION) || (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION)
+constexpr uint32_t hPartialLenMax  = 0;
+#else
 constexpr uint32_t hPartialLenMax  = 6;
+#endif
 
 // On-chip memory
 constexpr uint64_t kLockStartAddr = 0;
 constexpr uint64_t kLockChipMemSize = ON_CHIP_SIZE * 1024;
-constexpr uint64_t kLocalLockNum = 4 * MB;  // tune to an appropriate value (as small as possible without affect the performance)
+// tune kLocalLockNum to an appropriate value (as small as possible without affect the performance)
+constexpr uint64_t kLocalLockNum = 4 * MB;
 constexpr uint64_t kOnChipLockNum = kLockChipMemSize * 8;  // 1bit-lock
 }
 
 
 using Key = std::array<uint8_t, define::keyLen>;
 using Value = uint64_t;
+constexpr Key kKeyNull = Key{};
 constexpr uint64_t kKeyMin = 1;
 #ifdef KEY_SPACE_LIMIT
 constexpr uint64_t kKeyMax = 60000000;  // only for int workloads

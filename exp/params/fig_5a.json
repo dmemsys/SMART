@@ -1,0 +1,11 @@
+{
+    "methods": "ART",
+    "write_ratio": [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100],
+    "target_epoch": 9,
+    "client_num": [8, 32],
+    "MN_num": 1,
+    "key_size": "email",
+    "value_size": 64,
+    "cache_size": 0,
+    "span_size": null
+}

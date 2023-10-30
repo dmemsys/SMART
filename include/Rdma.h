@@ -15,19 +15,25 @@
 
 #include "Debug.h"
 
-#define MAX_POST_LIST 32
 #define DCT_ACCESS_KEY 3185
 #define UD_PKEY 0x11111111
 #define PSN 3185
-#define NET_DEV_NAME "enp202s0f0" // [CONFIG]
-#define IB_DEV_NAME_IDX '2'       // [CONFIG]
-#define MLX_PORT 1                // [CONFIG]
+#define NET_DEV_NAME "enp202s0f0" // [CONFIG] enp202s0f0   (check from ifconfig)
+#define IB_DEV_NAME_IDX '2'       // [CONFIG] 2            (check from ibdev2netdev)
+#define MLX_PORT 1                // [CONFIG] 1            (check from ibdev2netdev)
+#define MLX_GID 1                 // [CONFIG] 1            (check from show_gids)
+#define IBV_MTU IBV_MTU_4096      // [CONFIG] IBV_MTU_4096 (check from ifconfig)
+#define MAX_ATOMIC_ARG 32         // [CONFIG] 32
 #define ON_CHIP_SIZE 128
 
-constexpr int kWriteOroMax = 24;
+constexpr int kWriteOroMax = 32;  // [CONFIG] 32
 constexpr int kReadOroMax = 1024;
 constexpr int kQPMaxDepth = 4096;
-constexpr int kInlineDataMax = 220;
+#ifndef DISABLE_INLINE
+constexpr int kInlineDataMax = 220;  // [CONFIG] 220
+#else
+constexpr int kInlineDataMax = 0;
+#endif
 
 struct RdmaOpRegion {
   uint64_t source;
@@ -65,7 +71,7 @@ struct Region {
 };
 
 //// Resource.cpp
-bool createContext(RdmaContext *context, uint8_t port = MLX_PORT, int gidIndex = 1,
+bool createContext(RdmaContext *context, uint8_t port = MLX_PORT, int gidIndex = MLX_GID,
                    uint8_t devIndex = 0);
 bool destoryContext(RdmaContext *context);
 

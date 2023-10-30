@@ -199,7 +199,7 @@ bool createQueuePair(ibv_qp **qp, ibv_qp_type mode, ibv_cq *send_cq,
   if (mode == IBV_QPT_RC) {
     attr.comp_mask = IBV_EXP_QP_INIT_ATTR_CREATE_FLAGS |
                      IBV_EXP_QP_INIT_ATTR_PD | IBV_EXP_QP_INIT_ATTR_ATOMICS_ARG;
-    attr.max_atomic_arg = 32;  // [CONFIG]
+    attr.max_atomic_arg = MAX_ATOMIC_ARG;
   } else {
     attr.comp_mask = IBV_EXP_QP_INIT_ATTR_PD;
   }
@@ -249,7 +249,7 @@ bool createDCTarget(ibv_exp_dct **dct, ibv_cq *cq, RdmaContext *context,
   dAttr.min_rnr_timer = 2;
   dAttr.tclass = 0;
   dAttr.flow_label = 0;
-  dAttr.mtu = IBV_MTU_4096;  //  [CONFIG]
+  dAttr.mtu = IBV_MTU;
   dAttr.pkey_index = 0;
   dAttr.hop_limit = 1;
   dAttr.create_flags = 0;

@@ -17,6 +17,7 @@ class BarDrawer(object):
             'Invalid Ratio'     : '\\',
             'Delegated Ratio'   : '\\',
             'Combined Ratio'    : '\\',
+            'P50 Latency'       : '',
             'P99 Latency'       : '\\',
             'Lock-fail'         : 'x',
 
@@ -43,6 +44,7 @@ class BarDrawer(object):
             'Invalid Ratio'     : '#DAE8FC',
             'Delegated Ratio'   : '#DAE8FC',
             'Combined Ratio'    : '#DAE8FC',
+            'P50 Latency'       : '#D5E8D4',
             'P99 Latency'       : '#DAE8FC',
             'Lock-fail'         : '#D5E8D4',
 
@@ -102,6 +104,7 @@ class BarDrawer(object):
         self.bar_offset = 0.5
         self.bar_padding = 0
         # legend
+        self.print_legend = True
         self.legend_location = ''
         self.legend_anchor = ()
         self.legendL_location = self.legendR_location = ''
@@ -165,10 +168,11 @@ class BarDrawer(object):
             ax.set_yticklabels(self.y_tick, fontsize=self.tick_size)
         if self.y_lim:
             ax.set_ylim(*self.y_lim)
-        if self.legend_anchor:
-            ax.legend(fontsize=self.legend_size, bbox_to_anchor=self.legend_anchor, frameon=False)
-        else:
-            ax.legend(fontsize=self.legend_size, loc=self.legend_location, frameon=False)
+        if self.print_legend:
+            if self.legend_anchor:
+                ax.legend(fontsize=self.legend_size, bbox_to_anchor=self.legend_anchor, frameon=False)
+            else:
+                ax.legend(fontsize=self.legend_size, loc=self.legend_location, frameon=False)
 
         if self.aux_plt_func:
             self.aux_plt_func(ax)
@@ -212,7 +216,7 @@ class BarDrawer(object):
 
         ax_L.set_ylabel(self.yL_label, fontsize=self.font_size)
         ax_L.set_yticks(self.yL_tick)
-        ax_L.set_yticklabels(self.yL_tick, fontsize=self.font_size)
+        ax_L.set_yticklabels(self.yL_tick, fontsize=self.tick_size)
         if self.legendL_anchor:
             if self.legendL_param:
                 ax_L.legend(bbox_to_anchor=self.legendL_anchor, frameon=False, **self.legendL_param)
@@ -220,6 +224,9 @@ class BarDrawer(object):
                 ax_L.legend(fontsize=self.legend_size, bbox_to_anchor=self.legendL_anchor, frameon=False)
         else:
             ax_L.legend(fontsize=self.legend_size, loc=self.legendL_location, frameon=False)
+
+        if self.yL_lim:
+            ax_L.set_ylim(*self.yL_lim)
         ax_R.set_ylabel(self.yR_label, fontsize=self.font_size)
         ax_R.set_yticks(self.yR_tick)
         ax_R.set_yticklabels(self.yR_tick, fontsize=self.tick_size)
@@ -230,9 +237,13 @@ class BarDrawer(object):
                 ax_R.legend(fontsize=self.legend_size, bbox_to_anchor=self.legendR_anchor, frameon=False)
         else:
             ax_R.legend(fontsize=self.legend_size, loc=self.legendR_location, frameon=False)
+        if self.yR_lim:
+            ax_R.set_ylim(*self.yR_lim)
+
         if self.yRfloat:
             ax_R.yaxis.set_major_formatter(FormatStrFormatter('%.2f'))
-
+        if self.yR_scale:
+            ax_R.set_yscale(self.yR_scale)
         if self.aux_plt_func:
             self.aux_plt_func(ax)
         plt.savefig(str(Path(self.pic_dir) / fig_name), format='pdf', bbox_inches='tight')
