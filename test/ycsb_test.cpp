@@ -9,10 +9,15 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <random>
+// #include <mutex>
+
+// std::mutex cout_lock;
 
 #ifdef LONG_TEST_EPOCH
-  #define TEST_EPOCH 40
+  #define TEST_EPOCH 31
   #define TIME_INTERVAL 1
 #else
 #ifdef SHORT_TEST_EPOCH
@@ -31,9 +36,9 @@
 
 #define MAX_THREAD_REQUEST 10000000
 #define LOAD_HEARTBEAT 100000
-#define USE_CORO
+// #define USE_CORO
 #define EPOCH_LAT_TEST
-#define LOADER_NUM 8
+#define LOADER_NUM 8 // [CONFIG] 8
 
 extern double cache_miss[MAX_APP_THREAD];
 extern double cache_hit[MAX_APP_THREAD];
@@ -139,13 +144,13 @@ RequstGen *gen_func(DSM* dsm, Request* req, int req_num, int coro_id, int coro_c
 }
 
 
-void work_func(Tree *tree, const Request& r, CoroContext *ctx, int coro_id) {
+void work_func(Tree *tree, const Request& r, CoroPull *sink) {
   if (r.is_search) {
     Value v;
-    tree->search(r.k, v, ctx, coro_id);
+    tree->search(r.k, v, sink);
   }
   else if (r.is_update || r.is_insert) {
-    tree->insert(r.k, r.v, ctx, coro_id, r.is_update);
+    tree->insert(r.k, r.v, sink, r.is_update);
   }
   else {
     std::map<Key, Value> ret;
@@ -179,7 +184,7 @@ void thread_load(int id) {
     while (load_in >> op >> int_k) {
       k = int2key(int_k);
       assert(op == "INSERT");
-      tree->insert(k, randval(e), nullptr, 0, false, true);
+      tree->insert(k, randval(e), nullptr, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }
@@ -194,7 +199,7 @@ void thread_load(int id) {
       tmp >> op >> str_k;
       k = str2key(str_k);
       assert(op == "INSERT");
-      tree->insert(k, randval(e), nullptr, 0, false, true);
+      tree->insert(k, randval(e), nullptr, false, true);
       if (++ cnt % LOAD_HEARTBEAT == 0) {
         printf("thread %lu: %d load entries loaded.\n", loader_id, cnt);
       }
@@ -314,7 +319,7 @@ void thread_run(int id) {
       auto r = gen->next();
 
       timer.begin();
-      work_func(tree, r, nullptr, 0);
+      work_func(tree, r, nullptr);
       auto us_10 = timer.end() / 100;
 
       if (us_10 >= LATENCY_WINDOWS) {
@@ -486,7 +491,7 @@ int main(int argc, char *argv[]) {
 #endif
 
     if (dsm->getMyNodeID() == 1) {
-      printf("total %lu", all_retry_cnt[0]);
+      printf("total %lu", all_retry_cnt[FIRST_TRY]);
       for (int i = 1; i < MAX_FLAG_NUM; ++ i) {
         printf(",  retry%d %lu", i, all_retry_cnt[i]);
       }
@@ -509,6 +514,7 @@ int main(int argc, char *argv[]) {
       printf("read invalid leaf rate: %lf\n", leaf_cache_invalid_cnt * 1.0 / try_read_leaf_cnt);
       printf("read node repair rate: %lf\n", read_node_repair_cnt * 1.0 / try_read_node_cnt);
       printf("read invalid node rate: %lf\n", all_retry_cnt[INVALID_NODE] * 1.0 / try_read_node_cnt);
+      printf("tree height: %lf\n", all_retry_cnt[FIND_NEXT] * 1.0 / all_retry_cnt[FIRST_TRY]);
       for (int i = 1; i < MAX_NODE_TYPE_NUM; ++ i) {
         printf("node_type%d %lu   ", i, read_node_type_cnt[i]);
       }

@@ -14,12 +14,15 @@ class PicGenerator(object):
         self.__ld = LineDrawer(data_path)
         self.__bd = BarDrawer(data_path)
         self.__figs_type = {
-            '3a' : 'line_one_ax', '3b' : 'bar_one_ax'   , '3c' : 'line_one_ax'  , '3d' : 'line_one_ax',
-            '4a' : 'line_two_ax', '4b' : 'bar_two_ax'   , '4c' : 'line_one_ax'  , '4d' : 'line_two_ax',
-            '11a': 'line_one_ax', '11b': 'line_one_ax'  , '11c': 'line_one_ax'  , '11d': 'line_one_ax', '11e': 'line_one_ax'  ,
-            '12a': 'line_one_ax', '12b': 'line_one_ax'  , '12c': 'line_one_ax'  , '12d': 'line_one_ax', '12e': 'line_one_ax'  ,
-            '13' : 'line_one_ax', '14' : 'bar_with_line', '15' : 'bar_with_line', '16' : 'bar_two_ax' , '17' : 'bar_with_line',
-            '18a': 'line_one_ax', '18b': 'line_one_ax'  , '18c': 'line_one_ax'
+            '4a' : 'line_one_ax', '4b' : 'bar_one_ax'   , '4c' : 'line_one_ax'  , '4d' : 'line_one_ax', '4e' : 'bar_one_ax', '4f' : 'bar_one_ax',
+            '5a' : 'line_two_ax', '5b' : 'bar_two_ax'   , '5c' : 'line_one_ax'  , '5d' : 'line_two_ax',
+            '13a': 'line_one_ax', '13b': 'line_one_ax'  , '13c': 'line_one_ax'  , '13d': 'line_one_ax', '13e': 'line_one_ax'  ,
+            '14a': 'line_one_ax', '14b': 'line_one_ax'  , '14c': 'line_one_ax'  , '14d': 'line_one_ax', '14e': 'line_one_ax'  ,
+            '15' : 'line_one_ax', '16' : 'bar_with_line', '17' : 'bar_with_line', '18' : 'bar_two_ax' , '19' : 'bar_with_line',
+            '21a': 'line_one_ax', '21b': 'line_one_ax'  , '21c': 'line_one_ax'  ,
+            '3a' : 'bar_two_ax' , '3b' : 'bar_two_ax'   , '20a' : 'line_one_ax' , '20b': 'line_one_ax' ,
+            '21d': 'line_one_ax', '21e': 'line_one_ax'  ,
+            '21f': 'line_one_ax', '21g': 'line_one_ax'  , '21h': 'line_one_ax'
         }
         self.__axhlineColor = '#00007c'
         self.__linewidth = 0.8
@@ -37,8 +40,14 @@ class PicGenerator(object):
         ax.annotate('', xy=(4, 14), xytext=(40, 14), arrowprops=dict(arrowstyle="<->", color=self.__axhlineColor, ls=(0, (5, 3))), fontsize=self.__font_size-1)
         ax.text(12.5, 16, '4M vs. 40M', fontsize=self.__font_size-1, color=self.__axhlineColor)
 
+    def __bar_annotation(self, ax, text1, text2):
+        ax.annotate('', xy=(-0.09, 110), xytext=(-0.1, 0), arrowprops=dict(arrowstyle="-"), zorder=2000)
+        ax.text(-0.19, 120, text1, fontsize=8, color='black', zorder=2000)
+        ax.annotate('', xy=(0.91, 110), xytext=(0.9, 0), arrowprops=dict(arrowstyle="-"), zorder=2000)
+        ax.text(0.81, 120, text2, fontsize=8, color='black', zorder=2000)
 
-    def generate(self, fig_num: str):
+
+    def generate(self, fig_num: str, plot_text: dict={}):
         fig_name = f"fig_{fig_num}.pdf"
         fig_type = self.__figs_type[fig_num]
 
@@ -53,6 +62,8 @@ class PicGenerator(object):
             custom_style['aux_plt_func'] = self.__aux_plt
         if fig_num == '3d':
             custom_style['aux_plt_func'] = self.__annotation
+        if fig_num == '4f':
+            custom_style['aux_plt_func'] = (lambda ax : self.__bar_annotation(ax, plot_text['text1'], plot_text['text2']))
 
         # draw
         if fig_type == 'line_one_ax':

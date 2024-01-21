@@ -4,8 +4,8 @@
     "target_epoch": 9,
     "client_num": [8, 32],
     "MN_num": 1,
-    "key_size": "email",
+    "key_size": ["randint", "email"],
     "value_size": 64,
-    "cache_size": [0, 100, 200, 300, 400, 500, 600],
+    "cache_size": [0, 600],
     "span_size": 32
 }

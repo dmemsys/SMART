@@ -1,11 +1,11 @@
 {
-    "methods": ["Baseline", "+Homogeneous Adaptive Internal Node", "+ART-indexed Cache"],
-    "workload_names": ["YCSB C", "c"],
-    "target_epoch": 10,
+    "methods": ["ART", "+Lock-free Internal Node", "+Update-in-place Leaf Node", "+Rear Embedded Lock", "+Read Delegation", "+Write Combining"],
+    "workload_names": {"YCSB_LOAD": "la", "YCSB A": "a", "YCSB B": "b", "YCSB C": "c", "YCSB D": "d"},
+    "target_epoch": 9,
     "client_num": [16, 24],
     "MN_num": 2,
-    "key_size": "email",
+    "key_size": "randint",
     "value_size": 8,
-    "cache_size": [150, 200, 250, 300],
+    "cache_size": 600,
     "span_size": null
 }

@@ -11,16 +11,16 @@ class LogParser(object):
     def get_statistics(self, logs: dict, target_epoch: int, get_avg: bool=False):
         for log in logs.values():
             if get_avg:
-                tpt, cache_hit_rate, lock_fail_cnt, leaf_invalid_rate = self.__parse_log_avg(log, target_epoch)
+                tpt, cache_hit_rate, WC_rate, RD_rate, lock_fail_cnt, leaf_invalid_rate, tree_height = self.__parse_log_avg(log, target_epoch)
             else:
-                tpt, cache_hit_rate, lock_fail_cnt, leaf_invalid_rate = self.__parse_log(log, target_epoch)
+                tpt, cache_hit_rate, WC_rate, RD_rate, lock_fail_cnt, leaf_invalid_rate, tree_height = self.__parse_log(log, target_epoch)
             if tpt is not None:
                 break
         assert(tpt is not None)
-        return tpt, cache_hit_rate, lock_fail_cnt, leaf_invalid_rate
+        return tpt, cache_hit_rate, WC_rate, RD_rate, lock_fail_cnt, leaf_invalid_rate, tree_height
 
     def __parse_log(self, log, target_epoch):
-        tpt, cache_hit_rate, lock_fail_cnt, leaf_invalid_rate = None, 0, 0, 0
+        tpt, cache_hit_rate, WC_rate, RD_rate, lock_fail_cnt, leaf_invalid_rate, tree_height = None, 0, 0, 0, 0, 0, 0
         flag = False
         for line in log:
             if f"epoch {target_epoch} passed!" in line:
@@ -34,6 +34,16 @@ class LogParser(object):
                 if data.replace('.', '').isdigit():
                     cache_hit_rate = float(data)
 
+            elif flag and "write combining rate" in line:
+                data = line.strip().split(' ')[3]
+                if data.replace('.', '').isdigit():
+                    WC_rate = float(data) * 100
+
+            elif flag and "read delegation rate" in line:
+                data = line.strip().split(' ')[3]
+                if data.replace('.', '').isdigit():
+                    RD_rate = float(data) * 100
+
             elif flag and "avg. lock/cas fail cnt" in line:
                 data = line.strip().split(' ')[4]
                 if data.replace('.', '').isdigit():
@@ -43,12 +53,17 @@ class LogParser(object):
                 data = line.strip().split(' ')[4]
                 if data.replace('.', '').isdigit():
                     leaf_invalid_rate = float(data) * 100
+
+            elif flag and "tree height" in line:
+                data = line.strip().split(' ')[2]
+                if data.replace('.', '').isdigit():
+                    tree_height = float(data)
                 break
 
-        return tpt, cache_hit_rate, lock_fail_cnt, leaf_invalid_rate
+        return tpt, cache_hit_rate, WC_rate, RD_rate, lock_fail_cnt, leaf_invalid_rate, tree_height
 
     def __parse_log_avg(self, log, target_epoch):
-        tpt, cache_hit_rate, lock_fail_cnt, leaf_invalid_rate = [], [], [], []
+        tpt, cache_hit_rate, WC_rate, RD_rate, lock_fail_cnt, leaf_invalid_rate, tree_height = [], [], [], [], [], [], []
         flag = False
         start_epoch = max(target_epoch // 2, target_epoch - 4)
         cnt = start_epoch
@@ -64,6 +79,16 @@ class LogParser(object):
                 if data.replace('.', '').isdigit():
                     cache_hit_rate.append(float(data))
 
+            elif flag and "write combining rate" in line:
+                data = line.strip().split(' ')[3]
+                if data.replace('.', '').isdigit():
+                    WC_rate.append(float(data) * 100)
+
+            elif flag and "read delegation rate" in line:
+                data = line.strip().split(' ')[3]
+                if data.replace('.', '').isdigit():
+                    RD_rate.append(float(data) * 100)
+
             elif flag and "avg. lock/cas fail cnt" in line:
                 data = line.strip().split(' ')[4]
                 if data.replace('.', '').isdigit():
@@ -73,6 +98,11 @@ class LogParser(object):
                 data = line.strip().split(' ')[4]
                 if data.replace('.', '').isdigit():
                     leaf_invalid_rate.append(float(data) * 100)
+
+            elif flag and "tree height" in line:
+                data = line.strip().split(' ')[2]
+                if data.replace('.', '').isdigit():
+                    tree_height.append(float(data))
                 cnt += 1
                 if cnt == target_epoch:
                     break
@@ -80,7 +110,7 @@ class LogParser(object):
         def get_avg(l):
             return sum(l) / len(l) if l else 0
 
-        return get_avg(tpt) if tpt else None, get_avg(cache_hit_rate), get_avg(lock_fail_cnt), get_avg(leaf_invalid_rate)
+        return get_avg(tpt) if tpt else None, get_avg(cache_hit_rate), get_avg(WC_rate), get_avg(RD_rate), get_avg(lock_fail_cnt), get_avg(leaf_invalid_rate), get_avg(tree_height)
 
     def get_redundant_statistics(self, log):
         redundant_read, redundant_write, redundant_cas = None, None, None

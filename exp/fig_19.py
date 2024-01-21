@@ -13,7 +13,7 @@ from utils.pic_generator import PicGenerator
 input_path = './params'
 style_path = "./styles"
 output_path = './results'
-fig_num = '18b'
+fig_num = '19'
 
 # common params
 with (Path(input_path) / f'common.json').open(mode='r') as f:
@@ -32,35 +32,36 @@ workload, workload_name   = fig_params['workload_names']
 target_epoch              = fig_params['target_epoch']
 CN_num, client_num_per_CN = fig_params['client_num']
 MN_num                    = fig_params['MN_num']
-key_type, key_sizes       = 'randint', fig_params['key_size']
+key_type                  = fig_params['key_size']
 value_size                = fig_params['value_size']
-cache_size                = fig_params['cache_size']
-span_size                 = fig_params['span_size']
+cache_sizes               = fig_params['cache_size']
 
 
 @print_func_time
 def main(cmd: CMDManager, tp: LogParser):
-    with (Path(input_path) / f'fig_{fig_num}.json').open(mode='r') as f:
-        fig_params = json.load(f)
-    CN_num, client_num_per_CN = fig_params['client_num']
-    key_type, key_sizes = 'randint', fig_params['key_size']
-    value_size = fig_params['value_size']
-    cache_size = fig_params['cache_size']
-
+    metrics = ['Throughput', 'Cache Hit Ratio']
     plot_data = {
         'methods': methods,
-        'X_data': key_sizes,
-        'Y_data': {method: [] for method in methods}
+        'bar_groups': list(map(str, cache_sizes)),
+        'metrics': metrics,
+        'Y_data': {
+            method: {
+                str(cache_size): {}  # store tpt, cache-hit rate, respectively
+                for cache_size in cache_sizes
+            }
+            for method in methods
+        }
     }
     for method in methods:
-        project_dir = f"{home_dir}/{method if method == 'Sherman' else 'SMART'}"
+        project_dir = f"{home_dir}/SMART"
         work_dir = f"{project_dir}/build"
         env_cmd = f"cd {work_dir}"
 
-        for key_size in key_sizes:
+        for cache_size in cache_sizes:
             # change config
-            sed_cmd = generate_sed_cmd('./include/Common.h', method == 'Sherman', key_size, value_size, cache_size, MN_num, span_size)
-            BUILD_PROJECT = f"cd {project_dir} && {sed_cmd} && mkdir -p build && cd build && cmake {cmake_options[method]} .. && make clean && make -j"
+            sed_cmd = generate_sed_cmd('./include/Common.h', False, 8 if key_type == 'randint' else 32, value_size, cache_size, MN_num)
+            cmake_option = cmake_options[method].replace('-DMIDDLE_TEST_EPOCH=off', '-DMIDDLE_TEST_EPOCH=on')
+            BUILD_PROJECT = f"cd {project_dir} && {sed_cmd} && mkdir -p build && cd build && cmake {cmake_option} .. && make clean && make -j"
 
             CLEAR_MEMC = f"{env_cmd} && /bin/bash ../script/restartMemc.sh"
             SPLIT_WORKLOADS = f"{env_cmd} && python3 {ycsb_dir}/split_workload.py {workload_name} {key_type} {CN_num} {client_num_per_CN}"
@@ -74,13 +75,13 @@ def main(cmd: CMDManager, tp: LogParser):
                     cmd.one_execute(CLEAR_MEMC)
                     cmd.all_execute(KILL_PROCESS, CN_num)
                     logs = cmd.all_long_execute(YCSB_TEST, CN_num)
-                    tpt, _, _, _ = tp.get_statistics(logs, target_epoch)
+                    tpt, cache_hit_rate, _, _, _, _, _ = tp.get_statistics(logs, target_epoch, get_avg=True)
                     break
                 except (FunctionTimedOut, Exception) as e:
                     print_WARNING(f"Error! Retry... {e}")
 
-            print_GOOD(f"[FINISHED POINT] method={method} key_size={key_size} tpt={tpt}")
-            plot_data['Y_data'][method].append(tpt)
+            print_GOOD(f"[FINISHED POINT] method={method} cache_size={cache_size} tpt={tpt} cache_hit_rate={cache_hit_rate}")
+            plot_data['Y_data'][method][str(cache_size)] = {metrics[0]: tpt, metrics[1]: cache_hit_rate}
     # save data
     Path(output_path).mkdir(exist_ok=True)
     with (Path(output_path) / f'fig_{fig_num}.json').open(mode='w') as f:

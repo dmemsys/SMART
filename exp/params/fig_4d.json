@@ -1,12 +1,14 @@
 {
-    "methods": null,
-    "zipfian": 0.99,
-    "read_ratio": 0,
-    "target_epoch": null,
-    "client_num_per_CN": [8, 16, 24, 32, 40, 48, 56, 64],
+    "methods": ["ART", "Sherman"],
+    "workload_names": ["YCSB C", "c"],
+    "target_epoch": 30,
+    "client_num": {
+        "Sherman": [[8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 8]],
+        "ART"    : [[8, 1], [8, 2], [8, 3], [8, 4], [8, 5], [8, 6], [8, 8], [8, 12], [8, 16], [8, 20], [8, 24], [8, 32], [8, 40]]
+    },
     "MN_num": 1,
-    "key_size": null,
-    "value_size": null,
-    "cache_size": null,
-    "span_size": null
+    "key_size": "email",
+    "value_size": 64,
+    "cache_size": 600,
+    "span_size": 32
 }

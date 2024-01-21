@@ -1,0 +1,12 @@
+{
+    "methods": "SMART",
+    "key_space": [60, 120, 240, 360, 480, 720, 960],
+    "warm_ratio": 0.05,
+    "read_ratio": 100,
+    "target_epoch": 9,
+    "client_num": [16, 64],
+    "MN_num": 2,
+    "key_size": "randint",
+    "value_size": 8,
+    "cache_size": 0
+}

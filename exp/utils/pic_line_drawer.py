@@ -21,6 +21,13 @@ class LineDrawer(object):
             'ART'            : (0, ()),
             'Sherman'        : (0, ()),
             'SMART'          : (0, ()),
+            'SMART (w/o coroutine)': (0, ()),
+            '1-coroutine': (0, ()),
+            '2-coroutine': (0, ()),
+            '3-coroutine': (0, ()),
+            '4-coroutine': (0, ()),
+            'RD Ratio' : (0, ()),
+            'WC Ratio' : (0, ()),
 
             'Throughput': (0, ()),
             'P99 Latency': (0, ()),
@@ -37,6 +44,13 @@ class LineDrawer(object):
             'ART'            : '#D63026',
             'Sherman'        : '#4575B5',
             'SMART'          : '#82B366',
+            'SMART (w/o coroutine)': '#D63026',
+            '1-coroutine': '#D63026',
+            '2-coroutine': '#82B366',
+            '3-coroutine': '#4575B5',
+            '4-coroutine': '#EF1F68',
+            'RD Ratio' : '#f1622e',
+            'WC Ratio' : '#7030a0',
 
             'Throughput': '#4575B5',
             'P99 Latency': '#D63026',
@@ -53,6 +67,13 @@ class LineDrawer(object):
             'ART'            : 'o',
             'Sherman'        : 'x',
             'SMART'          : 's',
+            'SMART (w/o coroutine)': 'x',
+            '1-coroutine': 'x',
+            '2-coroutine': 's',
+            '3-coroutine': 'o',
+            '4-coroutine': '^',
+            'RD Ratio' : '^',
+            'WC Ratio' : 'd',
 
             'Throughput': 'x',
             'P99 Latency': '^',
@@ -69,6 +90,13 @@ class LineDrawer(object):
             'ART'            : 1200,
             'Sherman'        : 1150,
             'SMART'          : 1250,
+            'SMART (w/o coroutine)': 1200,
+            '1-coroutine': 1200,
+            '2-coroutine': 1250,
+            '3-coroutine': 1150,
+            '4-coroutine': 1100,
+            'RD Ratio' : 1000,
+            'WC Ratio' : 1100,
 
             'Throughput': 1000,
             'P99 Latency': 1000,
@@ -93,7 +121,7 @@ class LineDrawer(object):
         self.hide_ylabel = False
         self.clip_on = True
         # legend
-        self.legend_location = ''
+        self.legend_location = 'best'
         self.legend_anchor = ()
         self.legendL_anchor = self.legendR_anchor = ()
         self.legend_ncol = 1

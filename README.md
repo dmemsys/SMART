@@ -1,6 +1,7 @@
-# SMART: A High-Performance Adaptive Radix Tree for Disaggregated Memory
+# A Memory-Disaggregated Radix Tree
 
-This is the implementation repository of our *OSDI'23* paper: **SMART: A High-Performance Adaptive Radix Tree for Disaggregated Memory**.
+This is the implementation repository of our invited *TOS'24* paper: **A Memory-Disaggregated Radix Tree**,
+which is an extended version of our *OSDI'23* paper: **SMART: A High-Performance Adaptive Radix Tree for Disaggregated Memory**.
 This artifact provides the source code of **SMART** and scripts to reproduce all the experiment results in our paper.
 **SMART**, a di<u>**S**</u>aggregated-me<u>**M**</u>ory-friendly <u>**A**</u>daptive <u>**R**</u>adix <u>**T**</u>ree, is the first radix tree for disaggregated memory with high performance.
 
@@ -13,7 +14,6 @@ This artifact provides the source code of **SMART** and scripts to reproduce all
   * [YCSB Workloads](#ycsb-workloads)
   * [Getting Started *(Artifacts Functional)*](#getting-started-artifacts-functional)
   * [Reproduce All Experiment Results *(Results Reproduced)*](#reproduce-all-experiment-results-results-reproduced)
-  * [Paper](#paper)
 
 
 ## Supported Platform
@@ -43,7 +43,7 @@ Input a file name (*e.g.*, SMART) and click `Create` to generate the experiment 
 ## Source Code *(Artifacts Available)*
 Now you can log into all the CloudLab nodes. Using the following command to clone this github repo in the home directory of **all** nodes:
 ```shell
-git clone https://github.com/dmemsys/SMART.git
+git clone -b extended-version https://github.com/dmemsys/SMART.git
 ```
 
 
@@ -170,19 +170,3 @@ You should run the following steps on **all** nodes.
 ## Reproduce All Experiment Results *(Results Reproduced)*
 We provide code and scripts in `./exp` folder for reproducing our experiments. For more details, see [./exp/README.md](./exp).
 
-## Paper
-If you use SMART in your research, please cite our paper:
-```bibtex
-@inproceedings {smart2023,
-  author = {Xuchuan Luo and Pengfei Zuo and Jiacheng Shen and Jiazhen Gu and Xin Wang and Michael R. Lyu and Yangfan Zhou},
-  title = {{SMART}: A High-Performance Adaptive Radix Tree for Disaggregated Memory},
-  booktitle = {17th {USENIX} Symposium on Operating Systems Design and Implementation ({OSDI} 23)},
-  year = {2023},
-  isbn = {978-1-939133-34-2},
-  address = {Boston, MA},
-  pages = {553--571},
-  url = {https://www.usenix.org/conference/osdi23/presentation/luo},
-  publisher = {{USENIX} Association},
-  month = jul,
-}
-```

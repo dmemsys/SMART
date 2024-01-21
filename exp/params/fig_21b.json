@@ -4,8 +4,8 @@
     "target_epoch": 9,
     "client_num": [16, 16],
     "MN_num": 2,
-    "key_size": "randint",
-    "value_size": [8, 16, 32, 64, 128, 256, 512, 1024],
-    "cache_size": 6000,
+    "key_size": [8, 16, 32, 64, 128, 256],
+    "value_size": 8,
+    "cache_size": 600,
     "span_size": 32
 }

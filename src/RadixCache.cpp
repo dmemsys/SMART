@@ -5,6 +5,7 @@
 #include <vector>
 #include <set>
 #include <queue>
+#include <map>
 
 
 RadixCache::RadixCache(int cache_size, DSM *dsm) : cache_size(cache_size), dsm(dsm) {
@@ -147,7 +148,7 @@ next:
 }
 
 
-bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx) {
+bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx, int target_depth) {
   CacheKey byte_array(k.begin(), k.begin() + define::keyLen - 1);
 
   SearchRetStk ret;
@@ -157,6 +158,12 @@ bool RadixCache::search_from_cache(const Key& k, volatile CacheEntry**& entry_pt
       auto cache_entry = item.entry_ptr;
       auto next_partial = k.at(item.next_idx);
       if (cache_entry) {
+#if (defined TREE_ENABLE_OPTIMISTIC_COMPRESSION) || (defined TREE_ENABLE_HYBRID_COMPRESSION)
+        if (target_depth > 0 && cache_entry->depth + 1 >= target_depth) {
+          ret.pop();
+          continue;
+        }
+#endif
         for (int i = 0; i < (int)cache_entry->records.size(); ++ i) {
           const auto& e = cache_entry->records[i];
           if (e != InternalEntry::Null() && e.partial == next_partial) {

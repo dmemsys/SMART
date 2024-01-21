@@ -1,12 +1,12 @@
 {
     "y_label": "Throughput (Mops/s)",
-    "yR_label": "Cache Hit Ratio",
-    "x_label": "Cache Size (MB)",
+    "yR_label": "Latency (us)",
 
-    "yR_tick": [0.9, 0.95, 1],
+    "y_lim": [9, 100],
+    "yR_scale": "log",
 
     "legend_location": "upper left",
-    "legendR_location": "center left",
+    "legendR_location": "best",
 
-    "figsize": [8, 4]
+    "figsize": [12, 5]
 }
