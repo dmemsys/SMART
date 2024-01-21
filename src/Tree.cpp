@@ -689,7 +689,7 @@ bool Tree::read_node(InternalEntry &p, bool& type_correct, char *node_buffer, co
     p.node_type = hdr.node_type;
     type_correct = false;
   }
-  type_correct = true;
+  else type_correct = true;
   // udpate reverse pointer if needed
   if (!from_cache && p_node->rev_ptr != p_ptr) {
     auto cas_buffer = (dsm->get_rbuf(coro_id)).get_cas_buffer();

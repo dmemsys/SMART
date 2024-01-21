@@ -35,6 +35,7 @@ pip3 install paramiko
 
 # gdown
 pip3 install gdown
+pip3 install --upgrade --no-cache-dir gdown
 
 # func_timeout
 pip3 install func_timeout
