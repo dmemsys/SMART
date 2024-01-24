@@ -10,9 +10,11 @@
 #include <vector>
 #include <iostream>
 #include <fstream>
+#include <sstream>
+#include <iomanip>
 #include <random>
 
-#define USE_CORO
+// #define USE_CORO
 #define TEST_EPOCH 10
 // #define NO_WRITE_CONFLICT
 // #define TEST_INSERT
@@ -132,12 +134,12 @@ RequstGen *gen_func(DSM* dsm, Request* req, int req_num, int coro_id, int coro_c
 }
 
 
-void work_func(Tree *tree, const Request& r, CoroContext *ctx, int coro_id) {
+void work_func(Tree *tree, const Request& r, CoroPull *sink) {
   if (r.is_search) {
     Value v;
-    tree->search(r.k, v, ctx, coro_id);
+    tree->search(r.k, v, sink);
   } else {
-    tree->insert(r.k, r.v, ctx, coro_id, !test_insert);
+    tree->insert(r.k, r.v, sink, !test_insert);
   }
 }
 
@@ -156,7 +158,7 @@ void thread_load(int id) {
   uint64_t end_warm_key = kWarmRatio * kKeySpace;
   for (uint64_t i = 1; i < end_warm_key; ++i) {
     if (i % all_loader_thread == loader_id) {
-      tree->insert(to_key(i), i * 2, nullptr, 0, false, true);
+      tree->insert(to_key(i), i * 2, nullptr, false, true);
     }
   }
   printf("loader %lu load finish\n", loader_id);
@@ -211,7 +213,7 @@ void thread_run(int id) {
     auto r = gen->next();
 
     timer.begin();
-    work_func(tree, r, nullptr, 0);
+    work_func(tree, r, nullptr);
     auto us_10 = timer.end() / 100;
 
     if (us_10 >= LATENCY_WINDOWS) {
@@ -224,8 +226,8 @@ void thread_run(int id) {
 }
 
 void parse_args(int argc, char *argv[]) {
-  if (argc != 6) {
-    printf("Usage: ./zipfian_test kNodeCount kReadRatio kThreadCount zipfan kCoroCnt\n");
+  if (argc != 6 && argc != 7 && argc != 8) {
+    printf("Usage: ./zipfian_test kNodeCount kReadRatio kThreadCount zipfan kCoroCnt [kKeySpace(M)] [kWarmRatio]\n");
     exit(-1);
   }
 
@@ -234,9 +236,15 @@ void parse_args(int argc, char *argv[]) {
   kThreadCount = atoi(argv[3]);
   zipfan = atof(argv[4]);
   kCoroCnt = atoi(argv[5]);
+  if (argc >= 7) {
+    kKeySpace = atoi(argv[6]) * define::MB;
+  }
+  if (argc >= 8) {
+    kWarmRatio = atof(argv[7]);
+  }
 
-  printf("kNodeCount %d, kReadRatio %d, kThreadCount %d, zipfan %lf, kCoroCnt %d\n", kNodeCount,
-         kReadRatio, kThreadCount, zipfan, kCoroCnt);
+  printf("kNodeCount %d, kReadRatio %d, kThreadCount %d, zipfan %lf, kCoroCnt %d, kKeySpace %lu M, kWarmRatio %lf\n",
+         kNodeCount, kReadRatio, kThreadCount, zipfan, kCoroCnt, kKeySpace / define::MB, kWarmRatio);
 }
 
 void save_latency(int epoch_id) {
@@ -389,6 +397,8 @@ int main(int argc, char *argv[]) {
       printf("read invalid leaf rate: %lf\n", leaf_cache_invalid_cnt * 1.0 / try_read_leaf_cnt);
       printf("read node repair rate: %lf\n", read_node_repair_cnt * 1.0 / try_read_node_cnt);
       printf("read invalid node rate: %lf\n", all_retry_cnt[INVALID_NODE] * 1.0 / try_read_node_cnt);
+      printf("write op cnt: %lu\n", try_write_op_cnt);
+      printf("read op cnt: %lu\n", try_read_op_cnt);
       for (int i = 1; i < MAX_NODE_TYPE_NUM; ++ i) {
         printf("node_type%d %lu   ", i, read_node_type_cnt[i]);
       }

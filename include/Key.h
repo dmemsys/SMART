@@ -123,7 +123,7 @@ inline Key int2key(uint64_t key) {
 }
 
 inline Key str2key(const std::string &key) {
-  // assert(key.size() <= define::keyLen);
+  // assert(key.size() > 0 && key.size() <= define::keyLen);
   Key res{};
   std::copy(key.begin(), key.size() <= define::keyLen ? key.end() : key.begin() + define::keyLen, res.begin());
   return res;

@@ -30,9 +30,20 @@ def sed_span_size(config_path: str, span_size: int):  # only for Sherman
     new_span_node = f"constexpr int spanSize = {span_size};"
     return f"sed -i 's/{old_span_code}/{new_span_node}/g' {config_path}"
 
+def sed_node_type_num(config_path: str, node_type_num: int):
+    old_type_num_code   = "^constexpr uint32_t adaptiveNodeTypeNum = .*"
+    new_type_num_code   = f"constexpr uint32_t adaptiveNodeTypeNum = {node_type_num};"
+    return f"sed -i 's/{old_type_num_code}/{new_type_num_code}/g' {config_path}"
 
-def generate_sed_cmd(config_path: str, is_Btree: bool, key_size: int, value_size: int, cache_size: int, MN_num: int, span_size: Optional[int] = None):
-    cmd = f"{sed_key_len(config_path, key_size)} && {sed_val_len(config_path, value_size)} && {sed_cache_size(config_path, cache_size)} && {sed_MN_num(config_path, MN_num)}"
+def sed_local_lock_num(config_path: str, local_lock_num_M: int):
+    old_local_lock_code   = "^constexpr uint64_t kLocalLockNum = .*"
+    new_local_lock_code   = f"constexpr uint64_t kLocalLockNum = {local_lock_num_M};"
+    return f"sed -i 's/{old_local_lock_code}/{new_local_lock_code}/g' {config_path}"
+
+def generate_sed_cmd(config_path: str, is_Btree: bool, key_size: int, value_size: int, cache_size: int, MN_num: int, span_size: Optional[int] = None, local_lock_num: Optional[int] = 4 * 1024 * 1024):
+    cmd = f"{sed_key_len(config_path, key_size)} && {sed_val_len(config_path, value_size)} && {sed_cache_size(config_path, cache_size)} && {sed_MN_num(config_path, MN_num)} && {sed_local_lock_num(config_path, local_lock_num)}"
+    if local_lock_num > 0:
+        cmd += f"&& {sed_span_size(config_path, span_size)}"
     if is_Btree:  # change span size for Sherman
         assert(span_size is not None)
         cmd += f"&& {sed_span_size(config_path, span_size)}"

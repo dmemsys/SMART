@@ -33,113 +33,113 @@ public:
   // RDMA operations
   // buffer is registered memory
   void read(char *buffer, GlobalAddress gaddr, size_t size, bool signal = true,
-            CoroContext *ctx = nullptr);
+            CoroPull* sink = nullptr);
   void read_sync(char *buffer, GlobalAddress gaddr, size_t size,
-                 CoroContext *ctx = nullptr);
+                 CoroPull* sink = nullptr);
 
   void write(const char *buffer, GlobalAddress gaddr, size_t size,
-             bool signal = true, CoroContext *ctx = nullptr);
+             bool signal = true, CoroPull* sink = nullptr);
   void write_sync(const char *buffer, GlobalAddress gaddr, size_t size,
-                  CoroContext *ctx = nullptr);
+                  CoroPull* sink = nullptr);
 
   void read_batch(RdmaOpRegion *rs, int k, bool signal = true,
-                  CoroContext *ctx = nullptr);
-  void read_batch_sync(RdmaOpRegion *rs, int k, CoroContext *ctx = nullptr);
-  void read_batches_sync(const std::vector<RdmaOpRegion>& rs, CoroContext *ctx = nullptr, int coro_id = 0);
+                  CoroPull* sink = nullptr);
+  void read_batch_sync(RdmaOpRegion *rs, int k, CoroPull* sink = nullptr);
+  void read_batches_sync(const std::vector<RdmaOpRegion>& rs, CoroPull* sink = nullptr);
 
   void write_batch(RdmaOpRegion *rs, int k, bool signal = true,
-                   CoroContext *ctx = nullptr);
-  void write_batch_sync(RdmaOpRegion *rs, int k, CoroContext *ctx = nullptr);
-  void write_batches_sync(RdmaOpRegion *rs, int k, CoroContext *ctx = nullptr, int coro_id = 0);
+                   CoroPull* sink = nullptr);
+  void write_batch_sync(RdmaOpRegion *rs, int k, CoroPull* sink = nullptr);
+  void write_batches_sync(RdmaOpRegion *rs, int k, CoroPull* sink = nullptr);
 
   void write_faa(RdmaOpRegion &write_ror, RdmaOpRegion &faa_ror,
                  uint64_t add_val, bool signal = true,
-                 CoroContext *ctx = nullptr);
+                 CoroPull* sink = nullptr);
   void write_faa_sync(RdmaOpRegion &write_ror, RdmaOpRegion &faa_ror,
-                      uint64_t add_val, CoroContext *ctx = nullptr);
+                      uint64_t add_val, CoroPull* sink = nullptr);
 
   void write_cas(RdmaOpRegion &write_ror, RdmaOpRegion &cas_ror,
                  uint64_t equal, uint64_t val, bool signal = true,
-                 CoroContext *ctx = nullptr);
+                 CoroPull* sink = nullptr);
   void write_cas_sync(RdmaOpRegion &write_ror, RdmaOpRegion &cas_ror,
-                      uint64_t equal, uint64_t val, CoroContext *ctx = nullptr);
+                      uint64_t equal, uint64_t val, CoroPull* sink = nullptr);
 
   void write_cas_mask(RdmaOpRegion &write_ror, RdmaOpRegion &cas_ror,
                       uint64_t equal, uint64_t val, uint64_t mask, bool signal = true,
-                      CoroContext *ctx = nullptr);
+                      CoroPull* sink = nullptr);
   void write_cas_mask_sync(RdmaOpRegion &write_ror, RdmaOpRegion &cas_ror,
-                           uint64_t equal, uint64_t val, uint64_t mask, CoroContext *ctx = nullptr);
+                           uint64_t equal, uint64_t val, uint64_t mask, CoroPull* sink = nullptr);
 
   void cas(GlobalAddress gaddr, uint64_t equal, uint64_t val,
            uint64_t *rdma_buffer, bool signal = true,
-           CoroContext *ctx = nullptr);
+           CoroPull* sink = nullptr);
   bool cas_sync(GlobalAddress gaddr, uint64_t equal, uint64_t val,
-                uint64_t *rdma_buffer, CoroContext *ctx = nullptr);
+                uint64_t *rdma_buffer, CoroPull* sink = nullptr);
 
   void cas_read(RdmaOpRegion &cas_ror, RdmaOpRegion &read_ror, uint64_t equal,
-                uint64_t val, bool signal = true, CoroContext *ctx = nullptr);
+                uint64_t val, bool signal = true, CoroPull* sink = nullptr);
   bool cas_read_sync(RdmaOpRegion &cas_ror, RdmaOpRegion &read_ror,
-                     uint64_t equal, uint64_t val, CoroContext *ctx = nullptr);
+                     uint64_t equal, uint64_t val, CoroPull* sink = nullptr);
 
   void read_cas(RdmaOpRegion &read_ror, RdmaOpRegion &cas_ror, uint64_t equal,
-                uint64_t val, bool signal = true, CoroContext *ctx = nullptr);
+                uint64_t val, bool signal = true, CoroPull* sink = nullptr);
   bool read_cas_sync(RdmaOpRegion &read_ror, RdmaOpRegion &cas_ror,
-                     uint64_t equal, uint64_t val, CoroContext *ctx = nullptr);
+                     uint64_t equal, uint64_t val, CoroPull* sink = nullptr);
 
   void cas_write(RdmaOpRegion &cas_ror, RdmaOpRegion &write_ror, uint64_t equal,
-                 uint64_t val, bool signal = true, CoroContext *ctx = nullptr);
+                 uint64_t val, bool signal = true, CoroPull* sink = nullptr);
   bool cas_write_sync(RdmaOpRegion &cas_ror, RdmaOpRegion &write_ror,
-                      uint64_t equal, uint64_t val, CoroContext *ctx = nullptr);
+                      uint64_t equal, uint64_t val, CoroPull* sink = nullptr);
 
   void two_cas_mask(RdmaOpRegion &cas_ror_1, uint64_t equal_1, uint64_t val_1, uint64_t mask_1,
                     RdmaOpRegion &cas_ror_2, uint64_t equal_2, uint64_t val_2, uint64_t mask_2,
-                    bool signal = true, CoroContext *ctx = nullptr);
+                    bool signal = true, CoroPull* sink = nullptr);
   std::pair<bool, bool> two_cas_mask_sync(RdmaOpRegion &cas_ror_1, uint64_t equal_1, uint64_t val_1, uint64_t mask_1,
                                           RdmaOpRegion &cas_ror_2, uint64_t equal_2, uint64_t val_2, uint64_t mask_2,
-                                          CoroContext *ctx = nullptr);
+                                          CoroPull* sink = nullptr);
 
   void cas_mask(GlobalAddress gaddr, uint64_t equal, uint64_t val,
                 uint64_t *rdma_buffer, uint64_t mask = ~(0ull),
-                bool signal = true, CoroContext *ctx = nullptr);
+                bool signal = true, CoroPull* sink = nullptr);
   bool cas_mask_sync(GlobalAddress gaddr, uint64_t equal, uint64_t val,
-                     uint64_t *rdma_buffer, uint64_t mask = ~(0ull), CoroContext *ctx = nullptr);
+                     uint64_t *rdma_buffer, uint64_t mask = ~(0ull), CoroPull* sink = nullptr);
 
   void faa_boundary(GlobalAddress gaddr, uint64_t add_val,
                     uint64_t *rdma_buffer, uint64_t mask = 63,
-                    bool signal = true, CoroContext *ctx = nullptr);
+                    bool signal = true, CoroPull* sink = nullptr);
   void faa_boundary_sync(GlobalAddress gaddr, uint64_t add_val,
                          uint64_t *rdma_buffer, uint64_t mask = 63,
-                         CoroContext *ctx = nullptr);
+                         CoroPull* sink = nullptr);
 
   // for on-chip device memory
   void read_dm(char *buffer, GlobalAddress gaddr, size_t size,
-               bool signal = true, CoroContext *ctx = nullptr);
+               bool signal = true, CoroPull* sink = nullptr);
   void read_dm_sync(char *buffer, GlobalAddress gaddr, size_t size,
-                    CoroContext *ctx = nullptr);
+                    CoroPull* sink = nullptr);
 
   void write_dm(const char *buffer, GlobalAddress gaddr, size_t size,
-                bool signal = true, CoroContext *ctx = nullptr);
+                bool signal = true, CoroPull* sink = nullptr);
   void write_dm_sync(const char *buffer, GlobalAddress gaddr, size_t size,
-                     CoroContext *ctx = nullptr);
+                     CoroPull* sink = nullptr);
 
   void cas_dm(GlobalAddress gaddr, uint64_t equal, uint64_t val,
               uint64_t *rdma_buffer, bool signal = true,
-              CoroContext *ctx = nullptr);
+              CoroPull* sink = nullptr);
   bool cas_dm_sync(GlobalAddress gaddr, uint64_t equal, uint64_t val,
-                   uint64_t *rdma_buffer, CoroContext *ctx = nullptr);
+                   uint64_t *rdma_buffer, CoroPull* sink = nullptr);
 
   void cas_dm_mask(GlobalAddress gaddr, uint64_t equal, uint64_t val,
                    uint64_t *rdma_buffer, uint64_t mask = ~(0ull),
-                   bool signal = true, CoroContext *ctx = nullptr);
+                   bool signal = true, CoroPull* sink = nullptr);
   bool cas_dm_mask_sync(GlobalAddress gaddr, uint64_t equal, uint64_t val,
-                        uint64_t *rdma_buffer, uint64_t mask = ~(0ull), CoroContext *ctx = nullptr);
+                        uint64_t *rdma_buffer, uint64_t mask = ~(0ull), CoroPull* sink = nullptr);
 
   void faa_dm_boundary(GlobalAddress gaddr, uint64_t add_val,
                        uint64_t *rdma_buffer, uint64_t mask = 63,
-                       bool signal = true, CoroContext *ctx = nullptr);
+                       bool signal = true, CoroPull* sink = nullptr);
   void faa_dm_boundary_sync(GlobalAddress gaddr, uint64_t add_val,
                             uint64_t *rdma_buffer, uint64_t mask = 63,
-                            CoroContext *ctx = nullptr);
+                            CoroPull* sink = nullptr);
 
   uint64_t poll_rdma_cq(int count = 1);
   bool poll_rdma_cq_once(uint64_t &wr_id);
@@ -203,7 +203,7 @@ public:
   void barrier(const std::string &ss) { keeper->barrier(ss); }
 
   char *get_rdma_buffer() { return rdma_buffer; }
-  RdmaBuffer &get_rbuf(int coro_id) { return rbuf[coro_id]; }
+  RdmaBuffer &get_rbuf(CoroPull* sink) { return rbuf[sink ? sink->get() : 0]; }
 
   GlobalAddress alloc(size_t size, bool align = true);
   void free(const GlobalAddress& addr, int size);

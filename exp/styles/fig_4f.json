@@ -1,0 +1,9 @@
+{
+    "y_label": "P99 Latency (us)",
+    "x_label": "Key Type",
+
+    "bar_offset": 1.5,
+    "legend_location": "best",
+
+    "figsize": [5, 4]
+}

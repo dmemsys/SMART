@@ -1,5 +1,8 @@
 #include "Rdma.h"
 
+#include <vector>
+
+
 int pollWithCQ(ibv_cq *cq, int pollNumber, struct ibv_wc *wc) {
   int count = 0;
 
@@ -355,15 +358,8 @@ bool rdmaCompareAndSwapMask(ibv_qp *qp, uint64_t source, uint64_t dest,
 
 bool rdmaReadBatch(ibv_qp *qp, RdmaOpRegion *ror, int k, bool isSignaled,
                    uint64_t wrID) {
-  // For range_query corotine safety
-  // thread_local struct ibv_sge coro_sg[MAX_CORO_NUM][kReadOroMax];
-  // thread_local struct ibv_send_wr coro_wr[MAX_CORO_NUM][kReadOroMax];
-
-  // auto& sg = coro_sg[wrID];
-  // auto& wr = coro_wr[wrID];
-
-  struct ibv_sge sg[kReadOroMax];
-  struct ibv_send_wr wr[kReadOroMax];
+  std::vector<ibv_sge> sg(k);
+  std::vector<ibv_send_wr> wr(k);
   struct ibv_send_wr *wrBad;
 
   for (int i = 0; i < k; ++i) {
@@ -393,9 +389,8 @@ bool rdmaReadBatch(ibv_qp *qp, RdmaOpRegion *ror, int k, bool isSignaled,
 
 bool rdmaWriteBatch(ibv_qp *qp, RdmaOpRegion *ror, int k, bool isSignaled,
                     uint64_t wrID) {
-
-  struct ibv_sge sg[kWriteOroMax];
-  struct ibv_send_wr wr[kWriteOroMax];
+  std::vector<ibv_sge> sg(k);
+  std::vector<ibv_send_wr> wr(k);
   struct ibv_send_wr *wrBad;
 
   for (int i = 0; i < k; ++i) {

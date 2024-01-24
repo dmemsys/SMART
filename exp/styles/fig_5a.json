@@ -1,0 +1,12 @@
+{
+    "yL_label": "Throughput (Mops/s)",
+    "yR_label": "P99 Latency (us)",
+    "x_label": "Write Ratio (%)",
+
+    "x_tick": [0, 20, 40, 60, 80, 100],
+
+    "legendL_anchor": [0.4, 1.15],
+    "legendR_anchor": [1, 1.15],
+
+    "figsize": [5, 4]
+}

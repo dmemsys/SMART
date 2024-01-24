@@ -1,11 +1,9 @@
 {
-    "methods": ["ART", "Sherman"],
+    "methods": ["Radix Tree", "+Path Compression", "+Adaptive Nodes"],
     "workload_names": ["YCSB C", "c"],
-    "target_epoch": 9,
-    "client_num": [[8, 4], [8, 8], [8, 16], [8, 24], [8, 32]],
-    "MN_num": [1, 2],
+    "target_epoch": 4,
+    "client_num": [8, 32],
+    "MN_num": 1,
     "key_size": "email",
-    "value_size": 64,
-    "cache_size": 0,
-    "span_size": 32
+    "value_size": 64
 }

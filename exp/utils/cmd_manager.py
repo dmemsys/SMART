@@ -81,6 +81,7 @@ class CMDManager(object):
         cli_ip = self.__cluster_ips[self.__master_idx]
         print_OK(f'COMMAND="{command}"')
         print_OK(f'EXECUTE_IP={cli_ip}')
+        out = ''
         try:
             _, stdout, stderr = cli.exec_command(command, get_pty=True)
             out = stdout.readlines()  # block here

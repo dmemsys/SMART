@@ -1,0 +1,14 @@
+{
+    "yL_label": "Avg. Redundant WRITE",
+    "yR_label": "Avg. Redundant CAS",
+    "x_label": "Number of Clients per CN",
+
+    "yL_tick": [0, 2, 4, 6, 8, 10],
+    "yR_tick": [0, 50, 100, 150, 200, 250],
+    "x_tick": [1, 16, 32, 48, 64],
+
+    "legendL_anchor": [0.6, 1],
+    "legendR_anchor": [0.55, 0.825],
+
+    "figsize": [5, 4]
+}

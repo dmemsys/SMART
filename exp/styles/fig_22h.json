@@ -1,0 +1,6 @@
+{
+    "y_label": "RDWC Ratio (%)",
+    "x_label": "Number of KV Items (M)",
+
+    "figsize": [5, 4]
+}

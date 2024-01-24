@@ -1,0 +1,9 @@
+{
+    "y_label": "Avg. Redundant READ",
+    "x_label": "Number of Clients per CN",
+
+    "x_tick": [1, 16, 32, 48, 64],
+
+    "legend_location": "upper left",
+    "figsize": [5, 4]
+}

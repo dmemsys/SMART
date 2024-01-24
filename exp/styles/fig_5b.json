@@ -1,0 +1,14 @@
+{
+    "yL_label": "Throughput (Mops/s)",
+    "yR_label": "Cache Invalid Ratio (%)",
+    "x_label": "Update Scheme",
+
+    "yL_tick": [0, 10, 20, 30],
+    "yR_tick": [0, 25, 50, 75, 100],
+    "bar_offset": 0.5,
+    "group_width": 0.3,
+    "legendL_anchor": [0.58, 1.02],
+    "legendR_anchor": [0.6, 0.85],
+
+    "figsize": [5, 4]
+}

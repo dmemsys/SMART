@@ -168,7 +168,7 @@ public:
 
   void add_to_cache(const Key& k, const InternalPage* p_node, const GlobalAddress &node_addr);
 
-  bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx);
+  bool search_from_cache(const Key& k, volatile CacheEntry**& entry_ptr_ptr, CacheEntry*& entry_ptr, int& entry_idx, int target_depth = 0);
   void search_range_from_cache(const Key &from, const Key &to, std::vector<RangeCache> &result);
   void invalidate(volatile CacheEntry** entry_ptr_ptr, CacheEntry* entry_ptr);
   void statistics();
