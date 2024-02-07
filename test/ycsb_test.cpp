@@ -337,8 +337,16 @@ void parse_args(int argc, char *argv[]) {
   kCoroCnt = atoi(argv[3]);
   kIsStr = (std::string(argv[4]) == "email");
   kIsScan = (std::string(argv[5]) == "e");
-  ycsb_load_path = "../ycsb/workloads/load_" + std::string(argv[4]) + "_workload" + std::string(argv[5]);
-  ycsb_trans_path = "../ycsb/workloads/txn_" + std::string(argv[4]) + "_workload" + std::string(argv[5]);
+
+  std::string workload_dir;
+  std::ifstream workloads_dir_in("../workloads.conf");
+  if (!workloads_dir_in.is_open()) {
+    printf("Error opening workloads.conf\n");
+    assert(false);
+  }
+  workloads_dir_in >> workload_dir;
+  ycsb_load_path = workload_dir + "/load_" + std::string(argv[4]) + "_workload" + std::string(argv[5]);
+  ycsb_trans_path = workload_dir + "/txn_" + std::string(argv[4]) + "_workload" + std::string(argv[5]);
   if (argc == 7) {
     if(kIsScan) fix_range_size = atoi(argv[6]);
     else rm_write_conflict = (atoi(argv[6]) != 0);
