@@ -12,7 +12,6 @@
 #include <fstream>
 #include <random>
 
-#define USE_CORO
 #define TEST_EPOCH 10
 // #define NO_WRITE_CONFLICT
 // #define TEST_INSERT
