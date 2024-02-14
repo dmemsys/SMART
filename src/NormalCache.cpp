@@ -199,5 +199,5 @@ void NormalCache::statistics() {
   for (const auto& e : cnt) {
     std::cout << "depth=" << e.first << " cnt=" << e.second << std::endl;
   }
-  std::cout << "cache efficiency=" << (double)(cache_size * define::MB - free_size) / kp_cnt << " B" << std::endl;
+  printf("consumed cache size = %.3lf MB\n", (double)cache_size - (double)free_size / define::MB);
 }
