@@ -528,12 +528,12 @@ int main(int argc, char *argv[]) {
 #ifndef EPOCH_LAT_TEST
   save_latency(1);
 #endif
-  printf("[END]\n");
   for (int i = 0; i < kThreadCount; i++) {
     th[i].join();
     printf("Thread %d joined.\n", i);
   }
   tree->statistics();
+  printf("[END]\n");
   dsm->barrier("fin");
 
   return 0;
