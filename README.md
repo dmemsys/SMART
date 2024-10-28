@@ -4,6 +4,8 @@ This is the implementation repository of our *OSDI'23* paper: **SMART: A High-Pe
 This artifact provides the source code of **SMART** and scripts to reproduce all the experiment results in our paper.
 **SMART**, a di<u>**S**</u>aggregated-me<u>**M**</u>ory-friendly <u>**A**</u>daptive <u>**R**</u>adix <u>**T**</u>ree, is the first radix tree for disaggregated memory with high performance.
 
+> [!NOTE]  
+> **📢 Please also check out our new work [CHIME](https://github.com/dmemsys/CHIME), which achieves a better trade-off between cache consumption and read amplifications than SMART on disaggregated memory.**
 
 - [SMART](#smart-a-high-performance-adaptive-radix-tree-for-disaggregated-memory)
   * [Supported Platform](#supported-platform)
@@ -14,6 +16,7 @@ This artifact provides the source code of **SMART** and scripts to reproduce all
   * [Getting Started *(Artifacts Functional)*](#getting-started-artifacts-functional)
   * [Reproduce All Experiment Results *(Results Reproduced)*](#reproduce-all-experiment-results-results-reproduced)
   * [Paper](#paper)
+  * [Acknowledges](#acknowledges)
 
 
 ## Supported Platform
@@ -186,3 +189,6 @@ If you use SMART in your research, please cite our paper:
   month = jul,
 }
 ```
+
+## Acknowledges
+This repository adopts [Sherman](https://github.com/thustorage/Sherman)'s codebase, and we greatly appreciate their contributions.
