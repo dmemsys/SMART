@@ -16,7 +16,7 @@ This artifact provides the source code of **SMART** and scripts to reproduce all
   * [Getting Started *(Artifacts Functional)*](#getting-started-artifacts-functional)
   * [Reproduce All Experiment Results *(Results Reproduced)*](#reproduce-all-experiment-results-results-reproduced)
   * [Paper](#paper)
-  * [Acknowledges](#acknowledges)
+  * [Acknowledgments](#acknowledgments)
 
 
 ## Supported Platform
@@ -190,5 +190,5 @@ If you use SMART in your research, please cite our paper:
 }
 ```
 
-## Acknowledges
-This repository adopts [Sherman](https://github.com/thustorage/Sherman)'s codebase, and we greatly appreciate their contributions.
+## Acknowledgments
+This repository adopts [Sherman](https://github.com/thustorage/Sherman)'s codebase, and we really appreciate it.
